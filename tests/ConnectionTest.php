@@ -23,18 +23,16 @@ class ConnectionTest extends TestCase
     {
         $dsn = $this->makeDsn();
         $pdo = new \PDO($dsn);
-        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+//        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
+        $conn = new Connection($pdo);
 
-        $stmt = $pdo->prepare("INSERT INTO data (document) VALUES (:document)");
-        $stmt->execute([
-//             ':created' => (new \DateTimeImmutable())->format('c'),
-//             ':updated' => (new \DateTimeImmutable())->format('c'),
-             ':document' => '{}',
+        $conn->preparedQuery("INSERT INTO data (document) VALUES (:document)", [
+            ':document' => '{}',
         ]);
 
-        $result = $pdo->query("SELECT * FROM data");
-        $result->setFetchMode(\PDO::FETCH_ASSOC);
+        $result = $conn->literalQuery("SELECT * FROM data");
+
         foreach ($result as $record) {
             print_r($record);
         }
