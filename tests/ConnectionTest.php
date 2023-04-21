@@ -9,6 +9,8 @@ use PHPUnit\Framework\TestCase;
 
 class ConnectionTest extends TestCase
 {
+    private Connection $connection;
+
     private function makeDsn(): string
     {
         return 'pgsql:host=' . getenv('DB_HOST')
@@ -18,24 +20,43 @@ class ConnectionTest extends TestCase
             . ';dbname=' . getenv('DB_NAME');
     }
 
-    #[Test]
-    public function stuff(): void
+    public function setUp(): void
     {
         $dsn = $this->makeDsn();
         $pdo = new \PDO($dsn);
-//        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $this->connection = new Connection($pdo);
 
-        $conn = new Connection($pdo);
+        $this->runFixtures();
+    }
 
-        $conn->preparedQuery("INSERT INTO data (document) VALUES (:document)", [
+    public function tearDown(): void
+    {
+        $this->connection->literalQuery("DELETE FROM data");
+    }
+
+    private function runFixtures(): void
+    {
+        $stmt = $this->connection->prepare('INSERT INTO data (document) VALUES (:document)');
+
+        $stmt->execute([
             ':document' => '{}',
         ]);
+        $stmt->execute([
+            ':document' => '{"name": "Larry"}',
+        ]);
+    }
 
-        $result = $conn->literalQuery("SELECT * FROM data");
+    #[Test]
+    public function stuff(): void
+    {
+        $result = $this->connection->literalQuery("SELECT * FROM data");
 
-        foreach ($result as $record) {
-            print_r($record);
-        }
+        $records = $result->fetchAll();
+
+        self::assertCount(2, $records);
+        self::assertEquals('{"name": "Larry"}', $records[1]['document']);
+
+        self::assertEquals('Larry', json_decode($records[1]['document'], true)['name']);
     }
 }
 

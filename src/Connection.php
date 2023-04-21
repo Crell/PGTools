@@ -12,9 +12,15 @@ class Connection
 
     public function preparedQuery(string $sql, array $args): \PDOStatement
     {
-        var_dump(func_get_args());
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($args);
+        $stmt->setFetchMode(\PDO::FETCH_ASSOC);
+        return $stmt;
+    }
+
+    public function prepare(string $sql): \PDOStatement
+    {
+        $stmt = $this->pdo->prepare($sql);
         $stmt->setFetchMode(\PDO::FETCH_ASSOC);
         return $stmt;
     }
