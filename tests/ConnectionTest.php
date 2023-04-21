@@ -39,7 +39,7 @@ class ConnectionTest extends TestCase
         $stmt = $this->connection->prepare('INSERT INTO data (document) VALUES (:document)');
 
         $stmt->execute([
-            ':document' => '{}',
+            ':document' => '{"name": "James"}',
         ]);
         $stmt->execute([
             ':document' => '{"name": "Larry"}',
@@ -56,7 +56,17 @@ class ConnectionTest extends TestCase
         self::assertCount(2, $records);
         self::assertEquals('{"name": "Larry"}', $records[1]['document']);
 
-        self::assertEquals('Larry', json_decode($records[1]['document'], true)['name']);
+        self::assertEquals('Larry', json_decode($records[1]['document'], true, 512, JSON_THROW_ON_ERROR)['name']);
+    }
+
+    #[Test]
+    public function storedprocs(): void
+    {
+        $this->connection->installRawFunction(new HasPersonRaw());
+
+        $stmt = $this->connection->literalQuery("SELECT has_person('Larry')");
+
+        self::assertTrue($stmt->fetchColumn());
     }
 }
 

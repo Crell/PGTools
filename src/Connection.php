@@ -31,4 +31,16 @@ class Connection
         $result->setFetchMode(\PDO::FETCH_ASSOC);
         return $result;
     }
+
+    public function installProcedure(StoredProcedure $proc): void
+    {
+//        $sql = sprintf("CREATE OR REPLACE PROCEDURE %s RETURNS %s "
+    }
+
+    public function installRawFunction(RawFunction $func): void
+    {
+        $sql = $func->completeFunction();
+
+        $this->literalQuery($sql);
+    }
 }
