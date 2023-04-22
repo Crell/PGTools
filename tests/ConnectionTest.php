@@ -55,7 +55,6 @@ class ConnectionTest extends TestCase
 
         self::assertCount(2, $records);
         self::assertEquals('{"name": "Larry"}', $records[1]['document']);
-
         self::assertEquals('Larry', json_decode($records[1]['document'], true, 512, JSON_THROW_ON_ERROR)['name']);
     }
 
@@ -70,13 +69,29 @@ class ConnectionTest extends TestCase
     }
 
     #[Test]
-    public function structuredProc(): void
+    public function structured_proc(): void
     {
         $this->connection->installProcedure(new HasPerson());
 
         $stmt = $this->connection->literalQuery("SELECT has_person('Larry')");
 
         self::assertTrue($stmt->fetchColumn());
+    }
+
+    #[Test]
+    public function table_return(): void
+    {
+        $this->connection->installProcedure(new FindPeople());
+
+        $stmt = $this->connection->literalQuery("SELECT * FROM find_people('Larry')");
+
+        $records = $stmt->fetchAll();
+
+        self::assertCount(1, $records);
+        self::assertEquals('{"name": "Larry"}', $records[0]['doc']);
+        self::assertEquals('Larry', json_decode($records[0]['doc'], true, 512, JSON_THROW_ON_ERROR)['name']);
+
+
     }
 }
 
@@ -88,8 +103,8 @@ class ConnectionTest extends TestCase
 id       serial
 constraint data_pk
 primary key,
-created  timestamptz default now(),
-modified timestamptz default now(),
+created_stamp  timestamptz default now(),
+modified_stamp timestamptz default now(),
 document jsonb
 );
 
