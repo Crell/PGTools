@@ -35,6 +35,22 @@ class Connection
         return $result;
     }
 
+    public function call(string $function, string ...$args): \PDOStatement
+    {
+        $placeholders = [];
+        $values = [];
+        foreach (array_values($args) as $idx => $value) {
+            $key = ':placeholder_' . $idx;
+            $placeholders[] = $key;
+            $values[$key] = $value;
+        }
+
+        $query = "SELECT * FROM $function(" . implode(', ', $placeholders) . ')';
+        $stmt =  $this->prepare($query);
+        $stmt->execute($values);
+        return $stmt;
+    }
+
     public function installProcedure(StoredProcedure $proc): void
     {
         $isFunc = $proc instanceof StoredFunction;

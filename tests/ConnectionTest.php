@@ -76,7 +76,7 @@ class ConnectionTest extends TestCase
     {
         $this->connection->installProcedure(new HasPerson());
 
-        $stmt = $this->connection->literalQuery("SELECT has_person('Larry')");
+        $stmt = $this->connection->literalQuery("SELECT * FROM has_person('Larry')");
 
         self::assertTrue($stmt->fetchColumn());
     }
@@ -89,6 +89,20 @@ class ConnectionTest extends TestCase
         $stmt = $this->connection->literalQuery("SELECT * FROM find_people('Larry')");
 
         $records = $stmt->fetchAll();
+
+        self::assertCount(1, $records);
+        self::assertEquals('{"name": "Larry"}', $records[0]['doc']);
+        self::assertEquals('Larry', json_decode($records[0]['doc'], true, 512, JSON_THROW_ON_ERROR)['name']);
+    }
+
+    #[Test]
+    public function call_table_return(): void
+    {
+        $this->connection->installProcedure(new FindPeople());
+
+        $result = $this->connection->call('find_people', 'Larry');
+
+        $records = $result->fetchAll();
 
         self::assertCount(1, $records);
         self::assertEquals('{"name": "Larry"}', $records[0]['doc']);
