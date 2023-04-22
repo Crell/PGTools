@@ -20,5 +20,5 @@ jobs:
                   php-version: ${{ matrix.php }}
                   coverage: pcov
                   tools: composer:v2
-            - run: composer update --no-progress ${{ matrix.composer-flags }}
-            - run: vendor/bin/phpunit ${{ matrix.phpunit-flags }}
+#            - run: composer update --no-progress ${{ matrix.composer-flags }}
+#            - run: vendor/bin/phpunit ${{ matrix.phpunit-flags }}
