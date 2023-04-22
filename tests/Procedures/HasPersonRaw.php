@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Crell\PGTools;
+namespace Crell\PGTools\Procedures;
+
+use Crell\PGTools\RawFunction;
 
 class HasPersonRaw implements RawFunction
 {

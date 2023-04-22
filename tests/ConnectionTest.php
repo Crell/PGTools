@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Crell\PGTools;
 
+use Crell\PGTools\Procedures\FindPeople;
+use Crell\PGTools\Procedures\HasPerson;
+use Crell\PGTools\Procedures\HasPersonRaw;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -90,8 +93,6 @@ class ConnectionTest extends TestCase
         self::assertCount(1, $records);
         self::assertEquals('{"name": "Larry"}', $records[0]['doc']);
         self::assertEquals('Larry', json_decode($records[0]['doc'], true, 512, JSON_THROW_ON_ERROR)['name']);
-
-
     }
 }
 

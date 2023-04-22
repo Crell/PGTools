@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Crell\PGTools;
+namespace Crell\PGTools\Procedures;
+
+use Crell\PGTools\StoredFunction;
+use Crell\PGTools\StoredLanguage;
 
 class FindPeople implements StoredFunction
 {
@@ -13,7 +16,7 @@ class FindPeople implements StoredFunction
 
     public function returns(): string
     {
-        return 'TABLE (created TIMESTAMPTZ, doc JSONB)';
+        return 'TABLE (created_stamp TIMESTAMPTZ, doc JSONB)';
     }
 
     public function language(): StoredLanguage
@@ -30,7 +33,7 @@ class FindPeople implements StoredFunction
     {
         return <<<BODY
 BEGIN
-    RETURN QUERY SELECT created_stamp, document 
+    RETURN QUERY SELECT data.created_stamp, document 
     FROM data 
     WHERE cast(document->>'name' AS text) = $1;
 END;

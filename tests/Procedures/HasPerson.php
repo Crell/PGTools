@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Crell\PGTools;
+namespace Crell\PGTools\Procedures;
+
+use Crell\PGTools\StoredFunction;
+use Crell\PGTools\StoredLanguage;
 
 class HasPerson implements StoredFunction
 {
