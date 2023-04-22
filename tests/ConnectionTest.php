@@ -60,9 +60,19 @@ class ConnectionTest extends TestCase
     }
 
     #[Test]
-    public function storedprocs(): void
+    public function literalproc(): void
     {
         $this->connection->installRawFunction(new HasPersonRaw());
+
+        $stmt = $this->connection->literalQuery("SELECT has_person_raw('Larry')");
+
+        self::assertTrue($stmt->fetchColumn());
+    }
+
+    #[Test]
+    public function structuredProc(): void
+    {
+        $this->connection->installProcedure(new HasPerson());
 
         $stmt = $this->connection->literalQuery("SELECT has_person('Larry')");
 

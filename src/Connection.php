@@ -34,13 +34,35 @@ class Connection
 
     public function installProcedure(StoredProcedure $proc): void
     {
-//        $sql = sprintf("CREATE OR REPLACE PROCEDURE %s RETURNS %s "
+        $isFunc = $proc instanceof StoredFunction;
+        $sql = "CREATE OR REPLACE "
+            . ($isFunc ? 'FUNCTION ' : 'PROCEDURE ')
+            . $proc->name();
+
+        $sql .= "(" . $this->paramsToSql($proc->parameters()) . ")";
+
+        if ($isFunc) {
+            $sql .= " RETURNS " . $proc->returns();
+        }
+
+        $sql .= ' LANGUAGE ' . $proc->language()->value;
+
+        $sql .= ' AS $$ ' . $proc->body() . ' $$ ';
+
+        $this->literalQuery($sql);
+    }
+
+    private function paramsToSql(array $params): string
+    {
+        $ret = [];
+        foreach ($params as $name => $type) {
+            $ret[] = "$name $type";
+        }
+        return implode(', ', $ret);
     }
 
     public function installRawFunction(RawFunction $func): void
     {
-        $sql = $func->completeFunction();
-
-        $this->literalQuery($sql);
+        $this->literalQuery($func->completeFunction());
     }
 }

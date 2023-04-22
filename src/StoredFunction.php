@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Crell\PGTools;
 
-interface StoredProcedure
+interface StoredFunction extends StoredProcedure
 {
+    public function returns(): string;
+
     public function name(): string;
 
     public function language(): StoredLanguage;

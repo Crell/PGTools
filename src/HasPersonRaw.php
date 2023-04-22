@@ -9,7 +9,7 @@ class HasPersonRaw implements RawFunction
     public function completeFunction(): string
     {
         return <<<STATEMENT
-CREATE OR REPLACE FUNCTION has_person(name text) RETURNS bool
+CREATE OR REPLACE FUNCTION has_person_raw(name text) RETURNS bool
 LANGUAGE PLPGSQL
 AS $$
   DECLARE record_count INTEGER;
