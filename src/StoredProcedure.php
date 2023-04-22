@@ -12,5 +12,8 @@ interface StoredProcedure
 
     public function body(): string;
 
+    /**
+     * @return array<string, string>
+     */
     public function parameters(): array;
 }

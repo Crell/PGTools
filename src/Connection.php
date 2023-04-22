@@ -10,6 +10,9 @@ class Connection
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     public function preparedQuery(string $sql, array $args): \PDOStatement
     {
         $stmt = $this->pdo->prepare($sql);
@@ -52,6 +55,9 @@ class Connection
         $this->literalQuery($sql);
     }
 
+    /**
+     * @param array<string, string> $params
+     */
     private function paramsToSql(array $params): string
     {
         $ret = [];
