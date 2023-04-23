@@ -11,7 +11,7 @@ use Crell\PGTools\Tables\Data;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class ConnectionTest extends TestCase
+class StoredProcedureTest extends TestCase
 {
     use ConnectionUtils;
 
@@ -43,7 +43,7 @@ class ConnectionTest extends TestCase
     }
 
     #[Test]
-    public function stuff(): void
+    public function basic_fetch_with_json(): void
     {
         $result = $this->connection->literalQuery("SELECT * FROM data");
 
