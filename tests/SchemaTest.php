@@ -55,7 +55,7 @@ class SchemaTest extends TestCase
         ]);
         $stmt->execute([
             'series' => 'Voyager',
-            'characters' => '{"Janeway", "Chakotay", "B\'elana"}',
+            'characters' => '{"Janeway", "Chakotay", "B\'Elana"}',
         ]);
 
         $records = $this->connection->literalQuery("SELECT * FROM ArrayExample WHERE series='Star Wars'")->fetchAll();
@@ -77,7 +77,7 @@ class SchemaTest extends TestCase
      * @param $end
      * @return ?array
      */
-    function decodePgArray(string $s, int $start = 0, &$end = null): ?array
+    public function decodePgArray(string $s, int $start = 0, &$end = null): ?array
     {
         if (empty($s) || $s[0] !== '{') return null;
         $return = array();

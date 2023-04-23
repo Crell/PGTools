@@ -2,7 +2,8 @@
     "name": "crell/pgtools",
     "require": {
         "php": "~8.1",
-        "crell/attributeutils": "^0.8.2"
+        "crell/attributeutils": "^0.8.2",
+        "crell/serde": "^0.6.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.1",
