@@ -51,9 +51,7 @@ class Connection
         }
 
         $query = "SELECT * FROM $function(" . implode(', ', $placeholders) . ')';
-        $stmt =  $this->prepare($query);
-        $stmt->execute($values);
-        return $stmt;
+        return $this->preparedQuery($query, $values);
     }
 
     public function installProcedure(StoredProcedure $proc): void
