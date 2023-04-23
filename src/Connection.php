@@ -10,6 +10,11 @@ class Connection
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     }
 
+    public function schema(): Schema
+    {
+        return new Schema($this);
+    }
+
     /**
      * @param array<string, string> $args
      */

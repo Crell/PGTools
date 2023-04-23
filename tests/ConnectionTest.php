@@ -7,27 +7,20 @@ namespace Crell\PGTools;
 use Crell\PGTools\Procedures\FindPeople;
 use Crell\PGTools\Procedures\HasPerson;
 use Crell\PGTools\Procedures\HasPersonRaw;
+use Crell\PGTools\Tables\Data;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 class ConnectionTest extends TestCase
 {
-    private Connection $connection;
-
-    private function makeDsn(): string
-    {
-        return 'pgsql:host=' . getenv('DB_HOST')
-            . ';port=' . getenv('DB_PORT')
-            . ';user=' . getenv('DB_USER')
-            . ';password=' . getenv('DB_PASS')
-            . ';dbname=' . getenv('DB_NAME');
-    }
+    use ConnectionUtils;
 
     public function setUp(): void
     {
-        $dsn = $this->makeDsn();
-        $pdo = new \PDO($dsn);
-        $this->connection = new Connection($pdo);
+        $this->initConnection();
+
+        $this->connection->literalQuery("DROP TABLE IF EXISTS data");
+        $this->connection->schema()->ensureTable(Data::class);
 
         $this->runFixtures();
     }
