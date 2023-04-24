@@ -6,7 +6,7 @@ config:
   xdebug: 'develop,debug'
 services:
   database:
-    type: postgres
+    type: postgres:14
     portforward: true
 
 tooling:
