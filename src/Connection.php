@@ -28,6 +28,11 @@ class Connection
         return new Schema($this);
     }
 
+    public function documentStore(string $name): DocumentStore
+    {
+        return new DocumentStore($this);
+    }
+
     /**
      *
      * @todo Might this be better as a custom result type? That may say where to put array decoding.

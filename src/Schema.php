@@ -42,6 +42,22 @@ class Schema
         $sql = "CREATE TABLE $tableDef->name ($columnSql)";
 
         $this->connection->literalQuery($sql);
+
+        // Install any related triggers.
+        foreach ($tableDef->triggers as $t) {
+            $this->installTrigger(new $t());
+        }
+    }
+
+    public function installTrigger(RawTrigger $trigger): void
+    {
+        $function = $trigger->triggerFunction();
+        if ($function instanceof RawFunction) {
+            $this->connection->installRawFunction($function);
+        } else {
+            $this->connection->installProcedure($function);
+        }
+        $this->connection->literalQuery($trigger->completeTrigger());
     }
 
     private function fieldToColumnDef(Field $field): string
@@ -53,7 +69,11 @@ class Schema
         }
 
         if (!$field->default instanceof NoDefaultValue) {
-            $sql .= ' DEFAULT ' . $field->default->value;
+            $sql .= match ($field->default->value) {
+                true => ' DEFAULT true',
+                false => ' DEFAULT false',
+                default => ' DEFAULT ' . $field->default->value,
+            };
         }
 
         return $sql;

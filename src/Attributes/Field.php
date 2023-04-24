@@ -55,7 +55,7 @@ class Field implements FromReflectionProperty, HasSubAttributes, Excludable
         if ($column) {
             $this->column = $column;
         }
-        if ($default) {
+        if (!is_null($default)) {
             $this->default = DefaultValue::Value($default);
         }
     }
@@ -107,8 +107,7 @@ class Field implements FromReflectionProperty, HasSubAttributes, Excludable
             'string' => new Varchar(),
 //            'float' => 'float',
             // Only ever allow storing datetime with TZ data.
-            \DateTime::class => new TimestampWithTimezone(),
-            \DateTimeImmutable::class => 'datetimetz_immutable',
+            \DateTime::class, \DateTimeImmutable::class => new TimestampWithTimezone(),
 //            'array' => 'json',
             // Probably a bad default.
             default => new Text(),
