@@ -6,7 +6,6 @@ namespace Crell\PGTools;
 
 use Crell\Serde\Serde;
 use Crell\Serde\SerdeCommon;
-use Ramsey\Uuid\Uuid;
 
 /**
  * @todo How to support multiple named document stores, when tables are 1:1 with classes right now?
@@ -35,7 +34,7 @@ class DocumentStore
         if (!isset($document->uuid)) {
             // Assume it's a new object.
 
-            $uuid = Uuid::uuid4()->toString();
+            $uuid = $this->connection->call('gen_random_uuid')->fetchColumn();
 
             // @todo This is all kinda hacky.  Do better.
             (fn(object $document) => $document->uuid = $uuid)

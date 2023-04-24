@@ -7,7 +7,6 @@ namespace Crell\PGTools\DocumentStore;
 use Crell\PGTools\ConnectionUtils;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Ramsey\Uuid\Uuid;
 
 class DocumentStoreTest extends TestCase
 {
@@ -26,7 +25,7 @@ class DocumentStoreTest extends TestCase
     {
         $stmt = $this->connection->prepare("INSERT INTO document (uuid, document, class) VALUES (:uuid, :document, :class)");
         $stmt->execute([
-            ':uuid' => Uuid::uuid4(),
+            ':uuid' => $this->connection->call('gen_random_uuid')->fetchColumn(),
             ':document' => '{"name": "James T Kirk"}',
             ':class' => Character::class,
         ]);
