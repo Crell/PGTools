@@ -57,7 +57,7 @@ class StoredProcedureTest extends TestCase
     #[Test]
     public function literalproc(): void
     {
-        $this->connection->installRawFunction(new HasPersonRaw());
+        $this->connection->schema()->installRawFunction(new HasPersonRaw());
 
         $stmt = $this->connection->literalQuery("SELECT has_person_raw('Larry')");
 
@@ -67,7 +67,7 @@ class StoredProcedureTest extends TestCase
     #[Test]
     public function structured_proc(): void
     {
-        $this->connection->installProcedure(new HasPerson());
+        $this->connection->schema()->installProcedure(new HasPerson());
 
         $stmt = $this->connection->literalQuery("SELECT * FROM has_person('Larry')");
 
@@ -77,7 +77,7 @@ class StoredProcedureTest extends TestCase
     #[Test]
     public function table_return(): void
     {
-        $this->connection->installProcedure(new FindPeople());
+        $this->connection->schema()->installProcedure(new FindPeople());
 
         $stmt = $this->connection->literalQuery("SELECT * FROM find_people('Larry')");
 
@@ -91,7 +91,7 @@ class StoredProcedureTest extends TestCase
     #[Test]
     public function call_table_return(): void
     {
-        $this->connection->installProcedure(new FindPeople());
+        $this->connection->schema()->installProcedure(new FindPeople());
 
         $result = $this->connection->call('find_people', 'Larry');
 

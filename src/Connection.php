@@ -90,43 +90,6 @@ class Connection
         return $this->preparedQuery($query, $values);
     }
 
-    public function installProcedure(StoredProcedure $proc): void
-    {
-        $isFunc = $proc instanceof StoredFunction;
-        $sql = "CREATE OR REPLACE "
-            . ($isFunc ? 'FUNCTION ' : 'PROCEDURE ')
-            . $proc->name();
-
-        $sql .= "(" . $this->paramsToSql($proc->parameters()) . ")";
-
-        if ($isFunc) {
-            $sql .= " RETURNS " . $proc->returns();
-        }
-
-        $sql .= ' LANGUAGE ' . $proc->language()->value;
-
-        $sql .= ' AS $$ ' . $proc->body() . ' $$ ';
-
-        $this->literalQuery($sql);
-    }
-
-    /**
-     * @param array<string, string> $params
-     */
-    private function paramsToSql(array $params): string
-    {
-        $ret = [];
-        foreach ($params as $name => $type) {
-            $ret[] = "$name $type";
-        }
-        return implode(', ', $ret);
-    }
-
-    public function installRawFunction(RawFunction $func): void
-    {
-        $this->literalQuery($func->completeFunction());
-    }
-
 
     /**
      * Shamelessly borrowed from https://stackoverflow.com/questions/3068683/convert-postgresql-array-to-php-array

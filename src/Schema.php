@@ -19,8 +19,6 @@ class Schema
     ) {}
 
     /**
-     *
-     *
      * @param class-string $class
      */
     public function ensureTable(string $class): void
@@ -53,11 +51,48 @@ class Schema
     {
         $function = $trigger->triggerFunction();
         if ($function instanceof RawFunction) {
-            $this->connection->installRawFunction($function);
+            $this->installRawFunction($function);
         } else {
-            $this->connection->installProcedure($function);
+            $this->installProcedure($function);
         }
         $this->connection->literalQuery($trigger->completeTrigger());
+    }
+
+    public function installProcedure(StoredProcedure $proc): void
+    {
+        $isFunc = $proc instanceof StoredFunction;
+        $sql = "CREATE OR REPLACE "
+            . ($isFunc ? 'FUNCTION ' : 'PROCEDURE ')
+            . $proc->name();
+
+        $sql .= "(" . $this->paramsToSql($proc->parameters()) . ")";
+
+        if ($isFunc) {
+            $sql .= " RETURNS " . $proc->returns();
+        }
+
+        $sql .= ' LANGUAGE ' . $proc->language()->value;
+
+        $sql .= ' AS $$ ' . $proc->body() . ' $$ ';
+
+        $this->connection->literalQuery($sql);
+    }
+
+    /**
+     * @param array<string, string> $params
+     */
+    private function paramsToSql(array $params): string
+    {
+        $ret = [];
+        foreach ($params as $name => $type) {
+            $ret[] = "$name $type";
+        }
+        return implode(', ', $ret);
+    }
+
+    public function installRawFunction(RawFunction $func): void
+    {
+        $this->connection->literalQuery($func->completeFunction());
     }
 
     private function fieldToColumnDef(Field $field): string
