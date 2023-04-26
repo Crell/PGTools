@@ -90,6 +90,10 @@ class Connection
         return $this->preparedQuery($query, $values);
     }
 
+    public function dtiToSql(\DateTimeImmutable $date): string
+    {
+        return $date->format('Y-m-d H:i:s.u P');
+    }
 
     /**
      * Shamelessly borrowed from https://stackoverflow.com/questions/3068683/convert-postgresql-array-to-php-array

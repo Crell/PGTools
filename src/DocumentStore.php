@@ -17,6 +17,7 @@ class DocumentStore
     private readonly \PDOStatement $updateStatement;
     private readonly \PDOStatement $loadStatement;
     private readonly \PDOStatement $deleteStatement;
+    private readonly \PDOStatement $purgeStatement;
 
     public function __construct(
         private readonly Connection $connection,
@@ -30,6 +31,8 @@ class DocumentStore
             ??= $this->connection->prepare("SELECT * FROM document WHERE deleted=false AND uuid=:uuid");
         $this->deleteStatement
             ??= $this->connection->prepare("UPDATE document SET deleted=true WHERE uuid=:uuid");
+        $this->purgeStatement
+            ??= $this->connection->prepare("DELETE FROM document WHERE deleted=true AND modified < :threshold::timestamptz");
     }
 
     public function write(object $document): object
@@ -73,5 +76,10 @@ class DocumentStore
     public function delete(string $uuid): void
     {
         $this->deleteStatement->execute([':uuid' => $uuid]);
+    }
+
+    public function purgeOlderThan(\DateTimeImmutable $threshold): void
+    {
+        $this->purgeStatement->execute([':threshold' => $this->connection->dtiToSql($threshold)]);
     }
 }

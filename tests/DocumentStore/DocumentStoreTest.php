@@ -105,4 +105,36 @@ class DocumentStoreTest extends TestCase
         self::assertTrue($rawRecord['deleted']);
         self::assertSame('Captain', json_decode($rawRecord['document'])->rank);
     }
+
+    #[Test]
+    public function purge_works(): void
+    {
+        $kirk = new Character('James T. Kirk', 'Captain');
+
+        $store = $this->connection->documentStore('main');
+
+        /** @var Character $written */
+        $written = $store->write($kirk);
+
+        self::assertNotEmpty($written->uuid);
+        self::assertEquals('James T. Kirk', $written->name);
+        self::assertEquals('Captain', $written->rank);
+
+        $store->delete($written->uuid);
+
+        $reload = $store->load($written->uuid);
+
+        self::assertNull($reload);
+
+        // Timestamps are down to zillionths of a second, so this should
+        // clear out the one we just deleted.
+        $store->purgeOlderThan(new \DateTimeImmutable());
+
+        $rawRecord = $this->connection->preparedQuery("SELECT * FROM document WHERE uuid=:uuid", [
+            ':uuid' => $written->uuid,
+        ])
+            ->fetch();
+
+        self::assertFalse($rawRecord);
+    }
 }
