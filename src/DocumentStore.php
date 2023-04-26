@@ -16,6 +16,7 @@ class DocumentStore
     private readonly \PDOStatement $insertStatement;
     private readonly \PDOStatement $updateStatement;
     private readonly \PDOStatement $loadStatement;
+    private readonly \PDOStatement $deleteStatement;
 
     public function __construct(
         private readonly Connection $connection,
@@ -26,7 +27,9 @@ class DocumentStore
         $this->updateStatement
             ??= $this->connection->prepare("UPDATE document SET document = :document WHERE uuid=:uuid");
         $this->loadStatement
-            ??= $this->connection->prepare("SELECT * FROM document WHERE uuid=:uuid");
+            ??= $this->connection->prepare("SELECT * FROM document WHERE deleted=false AND uuid=:uuid");
+        $this->deleteStatement
+            ??= $this->connection->prepare("UPDATE document SET deleted=true WHERE uuid=:uuid");
     }
 
     public function write(object $document): object
@@ -65,5 +68,10 @@ class DocumentStore
         }
 
         return $this->serde->deserialize($record['document'], from: 'json', to: $record['class']);
+    }
+
+    public function delete(string $uuid): void
+    {
+        $this->deleteStatement->execute([':uuid' => $uuid]);
     }
 }

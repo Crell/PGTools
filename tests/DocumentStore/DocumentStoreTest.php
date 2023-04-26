@@ -76,4 +76,33 @@ class DocumentStoreTest extends TestCase
         self::assertEquals('James T. Kirk', $updated->name);
         self::assertEquals('Admiral', $updated->rank);
     }
+
+    #[Test]
+    public function delete_works(): void
+    {
+        $kirk = new Character('James T. Kirk', 'Captain');
+
+        $store = $this->connection->documentStore('main');
+
+        /** @var Character $written */
+        $written = $store->write($kirk);
+
+        self::assertNotEmpty($written->uuid);
+        self::assertEquals('James T. Kirk', $written->name);
+        self::assertEquals('Captain', $written->rank);
+
+        $store->delete($written->uuid);
+
+        $reload = $store->load($written->uuid);
+
+        self::assertNull($reload);
+
+        $rawRecord = $this->connection->preparedQuery("SELECT * FROM document WHERE uuid=:uuid", [
+            ':uuid' => $written->uuid,
+        ])
+            ->fetch();
+
+        self::assertTrue($rawRecord['deleted']);
+        self::assertSame('Captain', json_decode($rawRecord['document'])->rank);
+    }
 }
