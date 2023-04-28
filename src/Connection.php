@@ -76,6 +76,24 @@ class Connection
         return $result;
     }
 
+    public function inTransaction(\Closure $c): bool
+    {
+        // @todo Some logging would be nice in here.
+        try {
+            $this->pdo->beginTransaction();
+            $ret = $c($this);
+            if ($ret === false) {
+                $this->pdo->rollBack();
+                return false;
+            }
+            $this->pdo->commit();
+            return true;
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            return false;
+        }
+    }
+
     public function call(string $function, string ...$args): \PDOStatement
     {
         $placeholders = [];
