@@ -6,6 +6,7 @@ namespace Crell\PGTools\DocumentStore;
 
 use Crell\PGTools\Attributes\Boolean;
 use Crell\PGTools\Attributes\Field;
+use Crell\PGTools\Attributes\Id;
 use Crell\PGTools\Attributes\JsonB;
 use Crell\PGTools\Attributes\Table;
 use Crell\PGTools\Attributes\TimestampWithTimezone;
@@ -17,7 +18,7 @@ use Crell\PGTools\Attributes\Varchar;
 #[Trigger(UpdateModifiedDate::class)]
 class DocumentStore
 {
-    #[Uuid]
+    #[Uuid, Id]
     public string $uuid;
 
     #[Field(default: 'CURRENT_TIMESTAMP'), TimestampWithTimezone]
