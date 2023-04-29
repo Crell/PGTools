@@ -105,6 +105,7 @@ class Field implements FromReflectionProperty, HasSubAttributes, Excludable
         return match ($phpType) {
             'int' => new Integer(),
             'string' => new Varchar(),
+            'bool' => new Boolean(),
 //            'float' => 'float',
             // Only ever allow storing datetime with TZ data.
             \DateTime::class, \DateTimeImmutable::class => new TimestampWithTimezone(),

@@ -19,7 +19,17 @@ use Crell\PGTools\Attributes\Varchar;
 class DocumentStore
 {
     #[Uuid, Id]
+    public string $revision;
+
+    #[Uuid]
     public string $uuid;
+
+    #[Uuid]
+    public string $parent;
+
+    public bool $latest;
+
+    public bool $active;
 
     #[Field(default: 'CURRENT_TIMESTAMP'), TimestampWithTimezone]
     public readonly \DateTimeImmutable $created;
