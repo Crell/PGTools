@@ -136,9 +136,9 @@ class DocumentStoreTest extends TestCase
 
         // Timestamps are down to zillionths of a second, so this should
         // clear out the one we just deleted.
-        $store->purgeOlderThan(new \DateTimeImmutable());
+        $store->purgeDeletedOlderThan(new \DateTimeImmutable());
 
-        $rawRecord = $this->connection->preparedQuery("SELECT * FROM document WHERE uuid=:uuid", [
+        $rawRecord = $this->connection->preparedQuery("SELECT uuid FROM document WHERE uuid=:uuid", [
             ':uuid' => $written->uuid,
         ])
             ->fetch();

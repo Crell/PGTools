@@ -26,7 +26,16 @@ class DocumentStore
         $this->deleteStatement ??= $this->connection->prepare(
             "UPDATE document SET deleted=true WHERE uuid=:uuid");
         $this->purgeStatement ??= $this->connection->prepare(
-            "DELETE FROM document WHERE deleted=true AND modified < :threshold::timestamptz");
+            "WITH uuids AS (
+                    SELECT uuid
+                        FROM document
+                        WHERE deleted=true
+                            AND active=true
+                            AND modified < :threshold::timestamptz
+                        GROUP BY uuid
+                    )
+                DELETE FROM document USING uuids WHERE document.uuid=uuids.uuid
+            ");
     }
 
     public function write(object $document): object
@@ -66,8 +75,9 @@ class DocumentStore
         $this->deleteStatement->execute([':uuid' => $uuid]);
     }
 
-    public function purgeOlderThan(\DateTimeImmutable $threshold): void
+    public function purgeDeletedOlderThan(\DateTimeImmutable $threshold): void
     {
         $this->purgeStatement->execute([':threshold' => $this->connection->dtiToSql($threshold)]);
     }
+
 }
