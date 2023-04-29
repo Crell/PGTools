@@ -13,8 +13,6 @@ use Crell\Serde\SerdeCommon;
 class DocumentStore
 {
     // @todo Or maybe these should be functions?
-    private readonly \PDOStatement $insertStatement;
-    private readonly \PDOStatement $updateStatement;
     private readonly \PDOStatement $loadStatement;
     private readonly \PDOStatement $deleteStatement;
     private readonly \PDOStatement $purgeStatement;
@@ -23,42 +21,32 @@ class DocumentStore
         private readonly Connection $connection,
         private readonly Serde $serde = new SerdeCommon(),
     ) {
-        $this->insertStatement
-            ??= $this->connection->prepare("INSERT INTO document (uuid, class, document) VALUES (:uuid, :class, :document)");
-        $this->updateStatement
-            ??= $this->connection->prepare("UPDATE document SET document = :document WHERE uuid=:uuid");
-        $this->loadStatement
-            ??= $this->connection->prepare("SELECT * FROM document WHERE deleted=false AND uuid=:uuid");
-        $this->deleteStatement
-            ??= $this->connection->prepare("UPDATE document SET deleted=true WHERE uuid=:uuid");
-        $this->purgeStatement
-            ??= $this->connection->prepare("DELETE FROM document WHERE deleted=true AND modified < :threshold::timestamptz");
+        $this->loadStatement ??= $this->connection->prepare(
+            "SELECT document, class FROM document WHERE deleted=false AND active=true AND uuid=:uuid");
+        $this->deleteStatement ??= $this->connection->prepare(
+            "UPDATE document SET deleted=true WHERE uuid=:uuid");
+        $this->purgeStatement ??= $this->connection->prepare(
+            "DELETE FROM document WHERE deleted=true AND modified < :threshold::timestamptz");
     }
 
     public function write(object $document): object
     {
-        if (!isset($document->uuid)) {
-            // Assume it's a new object.
+        $uuid = $this->connection->callFunc('gen_random_uuid')->fetchColumn();
+        $revision = $this->connection->callFunc('gen_random_uuid')->fetchColumn();
 
-            $uuid = $this->connection->call('gen_random_uuid')->fetchColumn();
+        // @todo This is all kinda hacky.  Do better.
+        (fn(object $document) => $document->uuid ??= $uuid)
+            ->call($document, $document);
 
-            // @todo This is all kinda hacky.  Do better.
-            (fn(object $document) => $document->uuid = $uuid)
-                ->call($document, $document);
+        $this->connection->callProc('add_doc_revision',
+            $document->uuid,
+            $revision,
+            true,
+            $document::class,
+            $this->serde->serialize($document, format: 'json'),
+        );
 
-            $this->insertStatement->execute([
-                ':uuid' => $document->uuid,
-                ':class' => $document::class,
-                ':document' => $this->serde->serialize($document, format: 'json'),
-            ]);
-            return $this->load($uuid);
-        } else {
-            $this->updateStatement->execute([
-                ':uuid' => $document->uuid,
-                ':document' => $this->serde->serialize($document, format: 'json'),
-            ]);
-            return $document;
-        }
+        return $this->load($document->uuid);
     }
 
     public function load(string $uuid): ?object

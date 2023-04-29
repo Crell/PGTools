@@ -17,15 +17,23 @@ class DocumentStoreTest extends TestCase
         $this->initConnection();
 
         $this->connection->literalQuery("DROP TABLE IF EXISTS document");
-        $this->connection->schema()->ensureTable(DocumentStore::class);
+        $this->connection->schema()->ensureTable(Document::class);
+        $this->connection->schema()->installProcedure(new AddDocRevision());
     }
 
     #[Test]
     public function raw_editing_of_document_table(): void
     {
-        $stmt = $this->connection->prepare("INSERT INTO document (uuid, document, class) VALUES (:uuid, :document, :class)");
+        $stmt = $this->connection->prepare("INSERT INTO document
+            (uuid, revision, parent, latest, active, document, class)
+            VALUES (:uuid, :revision, :parent, :latest, :active, :document, :class)
+        ");
         $stmt->execute([
-            ':uuid' => $this->connection->call('gen_random_uuid')->fetchColumn(),
+            ':uuid' => $this->connection->callFunc('gen_random_uuid')->fetchColumn(),
+            ':revision' => $this->connection->callFunc('gen_random_uuid')->fetchColumn(),
+            ':parent' => null,
+            ':latest' => true,
+            ':active' => true,
             ':document' => '{"name": "James T Kirk"}',
             ':class' => Character::class,
         ]);
@@ -55,7 +63,7 @@ class DocumentStoreTest extends TestCase
     }
 
     #[Test]
-    public function document_store(): void
+    public function save_and_load(): void
     {
         $kirk = new Character('James T. Kirk', 'Captain');
 

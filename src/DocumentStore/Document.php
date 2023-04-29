@@ -16,7 +16,7 @@ use Crell\PGTools\Attributes\Varchar;
 
 #[Table(name: 'document')]
 #[Trigger(UpdateModifiedDate::class)]
-class DocumentStore
+class Document
 {
     #[Uuid, Id]
     public string $revision;
@@ -25,7 +25,7 @@ class DocumentStore
     public string $uuid;
 
     #[Uuid]
-    public string $parent;
+    public ?string $parent = null;
 
     public bool $latest;
 
