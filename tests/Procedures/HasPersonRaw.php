@@ -18,7 +18,7 @@ AS $$
 BEGIN
   SELECT count(*) INTO record_count
   FROM data
-  WHERE cast(document->>'name' AS text) = $1;
+  WHERE cast(document->>'name' AS text) = name;
   RETURN record_count;
 END;
 $$

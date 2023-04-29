@@ -35,7 +35,7 @@ class FindPeople implements StoredFunction
 BEGIN
     RETURN QUERY SELECT data.created_stamp, document 
     FROM data 
-    WHERE cast(document->>'name' AS text) = $1;
+    WHERE cast(document->>'name' AS text) = name;
 END;
 BODY;
 
