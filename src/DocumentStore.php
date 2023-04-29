@@ -15,7 +15,8 @@ class DocumentStore
     // @todo Or maybe these should be functions?
     private readonly \PDOStatement $loadStatement;
     private readonly \PDOStatement $deleteStatement;
-    private readonly \PDOStatement $purgeStatement;
+    private readonly \PDOStatement $purgeDeletedStatement;
+    private readonly \PDOStatement $purgeOldRevisionsStatement;
 
     public function __construct(
         private readonly Connection $connection,
@@ -25,17 +26,21 @@ class DocumentStore
             "SELECT document, class FROM document WHERE deleted=false AND active=true AND uuid=:uuid");
         $this->deleteStatement ??= $this->connection->prepare(
             "UPDATE document SET deleted=true WHERE uuid=:uuid");
-        $this->purgeStatement ??= $this->connection->prepare(
+        $this->purgeDeletedStatement ??= $this->connection->prepare(
             "WITH uuids AS (
                     SELECT uuid
                         FROM document
                         WHERE deleted=true
                             AND active=true
-                            AND modified < :threshold::timestamptz
+                            AND created < :threshold::timestamptz
                         GROUP BY uuid
                     )
                 DELETE FROM document USING uuids WHERE document.uuid=uuids.uuid
             ");
+
+        $this->purgeOldRevisionsStatement ??= $this->connection->prepare(
+            "DELETE FROM document WHERE active=false AND created < :threshold::timestamptz"
+        );
     }
 
     public function write(object $document): object
@@ -77,7 +82,12 @@ class DocumentStore
 
     public function purgeDeletedOlderThan(\DateTimeImmutable $threshold): void
     {
-        $this->purgeStatement->execute([':threshold' => $this->connection->dtiToSql($threshold)]);
+        $this->purgeDeletedStatement->execute([':threshold' => $this->connection->dtiToSql($threshold)]);
+    }
+
+    public function purgeRevisionsOlderThan(\DateTimeImmutable $threshold): void
+    {
+        $this->purgeOldRevisionsStatement->execute([':threshold' => $this->connection->dtiToSql($threshold)]);
     }
 
 }

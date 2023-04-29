@@ -33,7 +33,7 @@ class EnforceTimestampLogic implements StoredFunction
                     NEW.created = OLD.created;
                 END IF;
 
-                NEW.modified = CURRENT_TIMESTAMP;
+                -- NEW.modified = CURRENT_TIMESTAMP;
                 RETURN NEW;
             END;
         FUNCTION;

@@ -57,9 +57,7 @@ class DocumentStoreTest extends TestCase
 
         self::assertEquals(Character::class, $updatedRecord['class']);
 
-        // Modified should auto-update.  Created should not.
         self::assertEquals($firstRecord['created'], $updatedRecord['created']);
-        self::assertNotEquals($firstRecord['modified'], $updatedRecord['modified']);
     }
 
     #[Test]
@@ -115,7 +113,7 @@ class DocumentStoreTest extends TestCase
     }
 
     #[Test]
-    public function purge_works(): void
+    public function purge_deleted_works(): void
     {
         $kirk = new Character('James T. Kirk', 'Captain');
 
@@ -144,5 +142,37 @@ class DocumentStoreTest extends TestCase
             ->fetch();
 
         self::assertFalse($rawRecord);
+    }
+
+    #[Test]
+    public function purge_old_revisions_works(): void
+    {
+        $kirk = new Character('James T. Kirk', 'Captain');
+
+        $store = $this->connection->documentStore('main');
+
+        /** @var Character $written */
+        $written = $store->write($kirk);
+
+        $uuid = $written->uuid;
+
+        self::assertNotEmpty($written->uuid);
+        self::assertEquals('James T. Kirk', $written->name);
+        self::assertEquals('Captain', $written->rank);
+
+        $threshold = new \DateTimeImmutable();
+
+        $written->rank = 'Admiral';
+        $store->write($written);
+
+        $store->purgeRevisionsOlderThan($threshold);
+
+        $records = $this->connection->preparedQuery("SELECT uuid FROM document WHERE uuid=:uuid", [
+            ':uuid' => $uuid,
+        ])
+            ->fetchAll();
+
+        self::assertCount(1, $records);
+        self::assertSame($uuid, $records[0]['uuid']);
     }
 }

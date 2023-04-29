@@ -15,7 +15,7 @@ use Crell\PGTools\Attributes\Uuid;
 use Crell\PGTools\Attributes\Varchar;
 
 #[Table(name: 'document')]
-#[Trigger(UpdateModifiedDate::class)]
+//#[Trigger(UpdateModifiedDate::class)]
 class Document
 {
     #[Uuid, Id]
@@ -33,9 +33,9 @@ class Document
 
     #[Field(default: 'CURRENT_TIMESTAMP'), TimestampWithTimezone]
     public readonly \DateTimeImmutable $created;
-
-    #[Field(default: 'CURRENT_TIMESTAMP'), TimestampWithTimezone]
-    public readonly \DateTimeImmutable $modified;
+//
+//    #[Field(default: 'CURRENT_TIMESTAMP'), TimestampWithTimezone]
+//    public readonly \DateTimeImmutable $modified;
 
     #[Varchar]
     public readonly string $class;
