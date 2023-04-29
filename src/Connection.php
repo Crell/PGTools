@@ -94,7 +94,7 @@ class Connection
         }
     }
 
-    public function call(string $function, string ...$args): \PDOStatement
+    public function callFunc(string $function, ...$args): \PDOStatement
     {
         $placeholders = [];
         $values = [];
@@ -105,6 +105,20 @@ class Connection
         }
 
         $query = "SELECT * FROM $function(" . implode(', ', $placeholders) . ')';
+        return $this->preparedQuery($query, $values);
+    }
+
+    public function callProc(string $procedure, ...$args): \PDOStatement
+    {
+        $placeholders = [];
+        $values = [];
+        foreach (array_values($args) as $idx => $value) {
+            $key = ':placeholder_' . $idx;
+            $placeholders[] = $key;
+            $values[$key] = $value;
+        }
+
+        $query = "CALL $procedure(" . implode(', ', $placeholders) . ')';
         return $this->preparedQuery($query, $values);
     }
 

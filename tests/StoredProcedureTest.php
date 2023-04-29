@@ -93,7 +93,7 @@ class StoredProcedureTest extends TestCase
     {
         $this->connection->schema()->installProcedure(new FindPeople());
 
-        $result = $this->connection->call('find_people', 'Larry');
+        $result = $this->connection->callFunc('find_people', 'Larry');
 
         $records = $result->fetchAll();
 
