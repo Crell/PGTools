@@ -8,8 +8,12 @@ use Crell\AttributeUtils\Analyzer;
 use Crell\AttributeUtils\ClassAnalyzer;
 use Crell\AttributeUtils\MemoryCacheAnalyzer;
 use Crell\PGTools\Attributes\Field;
+use Crell\PGTools\Attributes\PartitionByRange;
 use Crell\PGTools\Attributes\Table;
+use function Crell\fp\amap;
+use function Crell\fp\pipe;
 use function Crell\fp\prop;
+use function Crell\fp\implode;
 
 class Schema
 {
@@ -39,7 +43,32 @@ class Schema
 
         $sql = "CREATE TABLE $tableDef->name ($columnSql)";
 
+        $partitionSql = [];
+
+        if ($tableDef->partitionDef instanceof PartitionByRange) {
+            $sql .= ' PARTITION BY RANGE (' . \implode(', ', $tableDef->partitionDef->columns) . ')';
+            foreach ($tableDef->partitionDef->partitions as $partition) {
+                $partSql = "CREATE TABLE {$tableDef->name}_{$partition->name} PARTITION OF {$tableDef->name} FOR VALUES FROM ";
+                $partSql .= '('
+                    . pipe($partition->from, amap($this->connection->toSqlLiteral(...)), implode(', '))
+                    . ') TO ('
+                    . pipe($partition->to, amap($this->connection->toSqlLiteral(...)), implode(', '))
+                    . ') ';
+
+                $partitionSql[] = $partSql;
+            }
+
+            if ($tableDef->partitionDef->defaultPartition) {
+                $partitionSql[] = "CREATE TABLE {$tableDef->name}_{$tableDef->partitionDef->defaultPartition->name} PARTITION OF {$tableDef->name} DEFAULT ";
+            }
+        }
+
         $this->connection->literalQuery($sql);
+
+        // If there were any partitions to create, create them.
+        foreach ($partitionSql as $sql) {
+            $this->connection->literalQuery($sql);
+        }
 
         // Install any related triggers.
         foreach ($tableDef->triggers as $t) {

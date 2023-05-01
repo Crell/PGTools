@@ -71,9 +71,13 @@ class Connection
 
     public function literalQuery(string $sql): \PDOStatement
     {
-        $result = $this->pdo->query($sql);
-        $result->setFetchMode(\PDO::FETCH_ASSOC);
-        return $result;
+        try {
+            $result = $this->pdo->query($sql);
+            $result->setFetchMode(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            print $sql . PHP_EOL;
+        }
     }
 
     public function inTransaction(\Closure $c): bool
@@ -125,6 +129,15 @@ class Connection
     public function dtiToSql(\DateTimeImmutable $date): string
     {
         return $date->format('Y-m-d H:i:s.u P');
+    }
+
+    public function toSqlLiteral(mixed $value): string
+    {
+        return match (get_debug_type($value)) {
+            'int', 'float' => $value,
+            'bool' => $value ? 'true' : 'false',
+            'string' => "'$value'",
+        };
     }
 
     /**
