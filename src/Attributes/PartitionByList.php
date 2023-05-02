@@ -8,7 +8,7 @@ use Attribute;
 use Crell\AttributeUtils\HasSubAttributes;
 
 #[Attribute(Attribute::TARGET_CLASS|Attribute::IS_REPEATABLE)]
-class PartitionByRange implements HasSubAttributes, PartitionType
+class PartitionByList implements HasSubAttributes, PartitionType
 {
     /**
      * @var string[]
@@ -16,27 +16,26 @@ class PartitionByRange implements HasSubAttributes, PartitionType
     public readonly array $columns;
 
     /**
-     * @var PartitionRange[]
+     * @var PartitionList[]
      */
     public readonly array $partitions;
 
     public readonly ?DefaultPartition $defaultPartition;
 
     public function __construct(
-        string ...$columns,
+        public readonly string $column,
     ) {
-        $this->columns = $columns;
     }
 
     public function subAttributes(): array
     {
         return [
-            PartitionRange::class => 'fromPartition',
+            PartitionList::class => 'fromPartitionList',
             DefaultPartition::class => 'fromDefaultPartition',
         ];
     }
 
-    public function fromPartition(array $partitions = []): void
+    public function fromPartitionList(array $partitions = []): void
     {
         $this->partitions = $partitions;
     }

@@ -9,18 +9,16 @@ use Crell\PGTools\Attributes\DefaultPartition;
 use Crell\PGTools\Attributes\Field;
 use Crell\PGTools\Attributes\Id;
 use Crell\PGTools\Attributes\JsonB;
-use Crell\PGTools\Attributes\PartitionRange;
-use Crell\PGTools\Attributes\PartitionByRange;
+use Crell\PGTools\Attributes\PartitionByList;
+use Crell\PGTools\Attributes\PartitionList;
 use Crell\PGTools\Attributes\Table;
 use Crell\PGTools\Attributes\TimestampWithTimezone;
-use Crell\PGTools\Attributes\Trigger;
 use Crell\PGTools\Attributes\Uuid;
 use Crell\PGTools\Attributes\Varchar;
 
 #[Table(name: 'document')]
-//#[Trigger(UpdateModifiedDate::class)]
-#[PartitionByRange('active', 'deleted')]
-#[PartitionRange('active', [true, false], [true, false])]
+#[PartitionByList('active')]
+#[PartitionList('active', [true])]
 #[DefaultPartition('revisions')]
 class Document
 {
@@ -38,6 +36,9 @@ class Document
     #[Id]
     public bool $active;
 
+    #[Field(default: false), Boolean]
+    public readonly bool $deleted;
+
     #[Field(default: 'CURRENT_TIMESTAMP'), TimestampWithTimezone]
     public readonly \DateTimeImmutable $created;
 //
@@ -46,9 +47,6 @@ class Document
 
     #[Varchar]
     public readonly string $class;
-
-    #[Field(default: false), Boolean, Id]
-    public readonly bool $deleted;
 
     #[JsonB]
     public readonly string $document;

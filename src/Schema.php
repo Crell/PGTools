@@ -8,12 +8,13 @@ use Crell\AttributeUtils\Analyzer;
 use Crell\AttributeUtils\ClassAnalyzer;
 use Crell\AttributeUtils\MemoryCacheAnalyzer;
 use Crell\PGTools\Attributes\Field;
+use Crell\PGTools\Attributes\PartitionByList;
 use Crell\PGTools\Attributes\PartitionByRange;
 use Crell\PGTools\Attributes\Table;
 use function Crell\fp\amap;
+use function Crell\fp\implode;
 use function Crell\fp\pipe;
 use function Crell\fp\prop;
-use function Crell\fp\implode;
 
 class Schema
 {
@@ -60,6 +61,19 @@ class Schema
 
             if ($tableDef->partitionDef->defaultPartition) {
                 $partitionSql[] = "CREATE TABLE {$tableDef->name}_{$tableDef->partitionDef->defaultPartition->name} PARTITION OF {$tableDef->name} DEFAULT ";
+            }
+        } else if ($tableDef->partitionDef instanceof PartitionByList) {
+            $sql .= " PARTITION BY List({$tableDef->partitionDef->column}) ";
+            foreach ($tableDef->partitionDef->partitions as $partition) {
+                $values = pipe($partition->values,
+                    amap($this->connection->toSqlLiteral(...)),
+                    implode(', '),
+                );
+                $partitionSql[] = "CREATE TABLE {$tableDef->name}_{$partition->name} PARTITION OF {$tableDef->name} FOR VALUES IN ({$values})";
+            }
+
+            if ($tableDef->partitionDef->defaultPartition) {
+                $partitionSql[] = "CREATE TABLE {$tableDef->name}_{$tableDef->partitionDef->defaultPartition->name} PARTITION OF {$tableDef->name} DEFAULT";
             }
         }
 
@@ -116,7 +130,7 @@ class Schema
         foreach ($params as $name => $type) {
             $ret[] = "$name $type";
         }
-        return implode(', ', $ret);
+        return \implode(', ', $ret);
     }
 
     public function installRawFunction(RawFunction $func): void

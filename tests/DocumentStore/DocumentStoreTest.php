@@ -175,4 +175,35 @@ class DocumentStoreTest extends TestCase
         self::assertCount(1, $records);
         self::assertSame($uuid, $records[0]['uuid']);
     }
+
+    #[Test]
+    public function partitioning_puts_only_active_records_in_active_table(): void
+    {
+        $orig = new Character('Spock', 'Lt. Cmdr.');
+
+        $store = $this->connection->documentStore('main');
+
+        /** @var Character $spock */
+        $spock = $store->write($orig);
+
+        $spock->rank = 'Commander';
+        $store->write($spock);
+        $spock->rank = 'Captain';
+        $store->write($spock);
+        $spock->rank = 'Ambassador';
+        $store->write($spock);
+
+        $activeCount = $this->connection->preparedQuery("SElECT COUNT(*) FROM document_active WHERE uuid=:uuid", [
+            ':uuid' => $spock->uuid,
+        ])->fetchColumn();
+
+        self::assertEquals(1, $activeCount);
+
+        $revisionCount = $this->connection->preparedQuery("SElECT COUNT(*) FROM document_revisions WHERE uuid=:uuid", [
+            ':uuid' => $spock->uuid,
+        ])->fetchColumn();
+
+        self::assertEquals(3, $revisionCount);
+
+    }
 }

@@ -26,7 +26,7 @@ class Table implements FromReflectionClass, ParseProperties, HasSubAttributes
 
     public readonly ?string $name;
 
-    public readonly ?PartitionByRange $partitionDef;
+    public readonly ?PartitionType $partitionDef;
 
     public function __construct(
         ?string $name = null,
@@ -61,7 +61,7 @@ class Table implements FromReflectionClass, ParseProperties, HasSubAttributes
     {
         return [
             Trigger::class => 'fromTriggers',
-            PartitionByRange::class => 'fromPartitionByRange',
+            PartitionType::class => 'fromPartitionType',
         ];
     }
 
@@ -77,7 +77,7 @@ class Table implements FromReflectionClass, ParseProperties, HasSubAttributes
         $this->triggers = $list;
     }
 
-    public function fromPartitionByRange(?PartitionByRange $partitionDef): void
+    public function fromPartitionType(?PartitionType $partitionDef): void
     {
         $this->partitionDef = $partitionDef;
     }
