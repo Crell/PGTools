@@ -84,6 +84,25 @@ class DocumentStoreTest extends TestCase
     }
 
     #[Test]
+    public function load_multple(): void
+    {
+        $picard = new Character('Jean-Luc Picard', 'Captain');
+        $riker = new Character('William Riker', 'Commander');
+
+        $store = $this->connection->documentStore('main');
+
+        /** @var Character $written */
+        $picard = $store->write($picard);
+        $riker = $store->write($riker);
+
+        $chars = $store->loadMultiple([$picard->uuid, $riker->uuid]);
+
+        self::assertCount(2, $chars);
+        self::assertEquals('Captain', $picard->rank);
+        self::assertEquals('Commander', $riker->rank);
+    }
+
+    #[Test]
     public function delete_works(): void
     {
         $kirk = new Character('James T. Kirk', 'Captain');

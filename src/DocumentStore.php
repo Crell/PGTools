@@ -6,6 +6,8 @@ namespace Crell\PGTools;
 
 use Crell\Serde\Serde;
 use Crell\Serde\SerdeCommon;
+use function Crell\fp\amap;
+use function Crell\fp\pipe;
 
 /**
  * @todo How to support multiple named document stores, when tables are 1:1 with classes right now?
@@ -14,6 +16,7 @@ class DocumentStore
 {
     // @todo Or maybe these should be functions?
     private readonly \PDOStatement $loadStatement;
+    private readonly \PDOStatement $loadStatementSingle;
     private readonly \PDOStatement $deleteStatement;
     private readonly \PDOStatement $purgeDeletedStatement;
     private readonly \PDOStatement $purgeOldRevisionsStatement;
@@ -22,8 +25,21 @@ class DocumentStore
         private readonly Connection $connection,
         private readonly Serde $serde = new SerdeCommon(),
     ) {
+        // @todo This syntax isn't working for some reason. I think
+        // PDO is garbling the query due to all the colons.
+        // cf: https://stackoverflow.com/questions/10720420/node-postgres-how-to-execute-where-col-in-dynamic-value-list-query
         $this->loadStatement ??= $this->connection->prepare(
-            "SELECT document, class FROM document WHERE deleted=false AND active=true AND uuid=:uuid");
+            "SELECT document, class 
+                    FROM document 
+                    WHERE deleted=false 
+                      AND active=true
+                      AND uuid = ANY(:uuids::uuid[])");
+        $this->loadStatementSingle ??= $this->connection->prepare(
+            "SELECT document, class
+                    FROM document
+                    WHERE deleted=false
+                      AND active=true
+                      AND uuid=:uuid");
         $this->deleteStatement ??= $this->connection->prepare(
             "UPDATE document SET deleted=true WHERE uuid=:uuid");
         $this->purgeDeletedStatement ??= $this->connection->prepare(
@@ -63,16 +79,44 @@ class DocumentStore
         return $this->load($document->uuid);
     }
 
+    public function loadMultiple(array $ids): array
+    {
+        $counter = 1;
+
+        $placeholders = [];
+        $values = [];
+        foreach ($ids as $id) {
+            $placeholder = ':placeholder_1' . $counter++;
+            $placeholders[] = $placeholder;
+            $values[$placeholder] = $id;
+        }
+
+        $stmt = $this->connection->prepare('SELECT document, class 
+                    FROM document 
+                    WHERE deleted=false 
+                      AND active=true
+                      AND uuid IN (' . implode(',', $placeholders) . ')');
+
+        $stmt->execute($values);
+
+        return pipe($stmt,
+            amap(fn(array $record): object => $this->serde->deserialize($record['document'], from: 'json', to: $record['class'])),
+        );
+    }
+
     public function load(string $uuid): ?object
     {
-        $this->loadStatement->execute([':uuid' => $uuid]);
+        return $this->loadMultiple([$uuid])[0] ?? null;
+        /*
+        $this->loadStatementSingle->execute([':uuid' => $uuid]);
 
-        $record = $this->loadStatement->fetch();
+        $record = $this->loadStatementSingle->fetch();
         if (!$record) {
             return null;
         }
 
         return $this->serde->deserialize($record['document'], from: 'json', to: $record['class']);
+        */
     }
 
     public function delete(string $uuid): void
