@@ -80,6 +80,31 @@ class Connection
         }
     }
 
+    /**
+     *
+     * Call like so:
+     * [$placeholders, $values] = $conn->toParameterList($list_of_vals);
+     *
+     * @param array $vals
+     * @return array{array<string>, array<string, mixed>}
+     *   A tuple, consisting of an array of placeholders and an array of
+     *   values mapped to placeholders.
+     */
+    public function toParameterList(array $vals): array
+    {
+        $counter = 1;
+
+        $placeholders = [];
+        $values = [];
+        foreach ($vals as $val) {
+            $placeholder = ':placeholder_1' . $counter++;
+            $placeholders[] = $placeholder;
+            $values[$placeholder] = $val;
+        }
+
+        return [$placeholders, $values];
+    }
+
     public function inTransaction(\Closure $c): bool
     {
         // @todo Some logging would be nice in here.

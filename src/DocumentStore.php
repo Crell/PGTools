@@ -81,15 +81,7 @@ class DocumentStore
 
     public function loadMultiple(array $ids): array
     {
-        $counter = 1;
-
-        $placeholders = [];
-        $values = [];
-        foreach ($ids as $id) {
-            $placeholder = ':placeholder_1' . $counter++;
-            $placeholders[] = $placeholder;
-            $values[$placeholder] = $id;
-        }
+        [$placeholders, $values] = $this->connection->toParameterList($ids);
 
         $stmt = $this->connection->prepare('SELECT document, class 
                     FROM document 

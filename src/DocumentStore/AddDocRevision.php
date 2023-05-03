@@ -35,7 +35,7 @@ class AddDocRevision implements \Crell\PGTools\StoredProcedure
         return <<<PROC
             BEGIN
             INSERT INTO document 
-            (uuid, revision, latest, active, document, class) 
+            (uuid, revision, latest, active, document, class)
             VALUES (uuid_in, revision_in, true, active, document_in, class);
 
             UPDATE document SET latest=false 
