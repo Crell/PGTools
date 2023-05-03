@@ -25,13 +25,12 @@ class DocumentStoreTest extends TestCase
     public function raw_editing_of_document_table(): void
     {
         $stmt = $this->connection->prepare("INSERT INTO document
-            (uuid, revision, parent, latest, active, document, class)
-            VALUES (:uuid, :revision, :parent, :latest, :active, :document, :class)
+            (uuid, revision, latest, active, document, class)
+            VALUES (:uuid, :revision, :latest, :active, :document, :class)
         ");
         $stmt->execute([
             ':uuid' => $this->connection->callFunc('gen_random_uuid')->fetchColumn(),
             ':revision' => $this->connection->callFunc('gen_random_uuid')->fetchColumn(),
-            ':parent' => null,
             ':latest' => true,
             ':active' => true,
             ':document' => '{"name": "James T Kirk"}',

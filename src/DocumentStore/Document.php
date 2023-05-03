@@ -28,8 +28,8 @@ class Document
     #[Uuid]
     public string $uuid;
 
-    #[Uuid]
-    public ?string $parent = null;
+//    #[Uuid]
+//    public ?string $parent = null;
 
     public bool $latest;
 
