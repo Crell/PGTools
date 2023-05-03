@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Crell\PGTools;
 
+use Crell\PGTools\DocumentStore\Document;
 use Crell\Serde\Serde;
 use Crell\Serde\SerdeCommon;
 use function Crell\fp\amap;
@@ -83,9 +84,9 @@ class DocumentStore
     {
         [$placeholders, $values] = $this->connection->toParameterList($ids);
 
-        $stmt = $this->connection->prepare('SELECT document, class 
-                    FROM document 
-                    WHERE deleted=false 
+        $stmt = $this->connection->prepare('SELECT document, class
+                    FROM document
+                    WHERE deleted=false
                       AND active=true
                       AND uuid IN (' . implode(',', $placeholders) . ')');
 
@@ -109,6 +110,63 @@ class DocumentStore
 
         return $this->serde->deserialize($record['document'], from: 'json', to: $record['class']);
         */
+    }
+
+    /**
+     * @param array $ids
+     * @return Document[]
+     */
+    public function loadRecords(array $ids): array
+    {
+        [$placeholders, $values] = $this->connection->toParameterList($ids);
+
+        $stmt = $this->connection->prepare('SELECT *
+                    FROM document
+                    WHERE uuid IN (' . implode(',', $placeholders) . ')');
+
+        $stmt->execute($values);
+
+        $docs = [];
+        foreach ($stmt as $record) {
+            $record['document'] = $this->serde->deserialize($record['document'], from: 'json', to: $record['class']);
+            $docs[$record['revision']] = $this->serde->deserialize($record, from: 'array', to: Document::class);
+        }
+
+        return $docs;
+    }
+
+    public function loadRevisions(string $uuid, int $limit = 10, int $offset = 0): array
+    {
+        $stmt = $this->connection->prepare('SELECT * 
+                    FROM document 
+                    WHERE uuid=:uuid
+                    ORDER BY created
+                    LIMIT :limit OFFSET :offset');
+
+        $stmt->execute([
+            ':uuid' => $uuid,
+            ':limit' => $limit,
+            ':offset' => $offset,
+        ]);
+
+        $populator = fn(object $object) => $this->object = $object;
+
+        $docs = [];
+        foreach ($stmt as $record) {
+            // @todo This is quite gross. Serde cannot deserialize from an
+            // object that has already been deserialized. That means we have
+            // to deserialize them separately, and then hack into the Document
+            // to write to a separate property from where the JSON was, because
+            // we cannot type it as "object", since Serde doesn't know what to
+            // do with that and the value is a JSON string in the database.
+            // So we end up with double data.  It would be lovely to do better.
+            $rec = $this->serde->deserialize($record, from: 'array', to: Document::class);
+            $object = $this->serde->deserialize($rec->document, from: 'json', to: $rec->class);
+            $populator->call($rec, $object);
+            $docs[$rec->revision] = $rec;
+        }
+
+        return $docs;
     }
 
     public function delete(string $uuid): void

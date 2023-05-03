@@ -15,6 +15,7 @@ use Crell\PGTools\Attributes\Table;
 use Crell\PGTools\Attributes\TimestampWithTimezone;
 use Crell\PGTools\Attributes\Uuid;
 use Crell\PGTools\Attributes\Varchar;
+use Crell\Serde\Attributes as Serde;
 
 #[Table(name: 'document')]
 #[PartitionByList('active')]
@@ -50,4 +51,10 @@ class Document
 
     #[JsonB]
     public readonly string $document;
+
+    // This is for when loading a record; it shows the deserialized
+    // version of $document.
+    #[Field(exclude: true)]
+    #[Serde\Field(exclude: true)]
+    public readonly object $object;
 }

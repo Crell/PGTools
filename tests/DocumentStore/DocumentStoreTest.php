@@ -222,6 +222,33 @@ class DocumentStoreTest extends TestCase
         ])->fetchColumn();
 
         self::assertEquals(3, $revisionCount);
+    }
 
+    #[Test]
+    public function load_old_revisions(): void
+    {
+        $orig = new Character('Spock', 'Lt. Cmdr.');
+
+        $store = $this->connection->documentStore('main');
+
+        /** @var Character $spock */
+        $spock = $store->write($orig);
+
+        $uuid = $spock->uuid;
+
+        $spock->rank = 'Commander';
+        $store->write($spock);
+        $spock->rank = 'Captain';
+        $store->write($spock);
+        $spock->rank = 'Ambassador';
+        $store->write($spock);
+
+        $records = $store->loadRevisions($uuid, 10, 0);
+
+        self::assertCount(4, $records);
+        foreach ($records as $rec) {
+            self::assertInstanceOf(Document::class, $rec);
+            self::assertInstanceOf(Character::class, $rec->object);
+        }
     }
 }
