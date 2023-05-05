@@ -55,17 +55,16 @@ class Connection
     /**
      * @param array<string, string> $args
      */
-    public function preparedQuery(string $sql, array $args): \PDOStatement
+    public function preparedQuery(string $sql, array $args): Statement
     {
-        $stmt = $this->pdo->prepare($sql);
+        $stmt = $this->prepare($sql);
         $stmt->execute($args);
         return $stmt;
     }
 
-    public function prepare(string $sql): \PDOStatement
+    public function prepare(string $sql, ?string $into = null): Statement
     {
-        $stmt = $this->pdo->prepare($sql);
-        return $stmt;
+        return new Statement($this, $this->pdo, $sql, $into);
     }
 
     public function literalQuery(string $sql): \PDOStatement
@@ -122,7 +121,7 @@ class Connection
         }
     }
 
-    public function callFunc(string $function, ...$args): \PDOStatement
+    public function callFunc(string $function, ...$args): Statement
     {
         $placeholders = [];
         $values = [];
@@ -136,7 +135,7 @@ class Connection
         return $this->preparedQuery($query, $values);
     }
 
-    public function callProc(string $procedure, ...$args): \PDOStatement
+    public function callProc(string $procedure, ...$args): Statement
     {
         $placeholders = [];
         $values = [];

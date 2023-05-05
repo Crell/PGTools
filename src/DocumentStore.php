@@ -16,11 +16,11 @@ use function Crell\fp\pipe;
 class DocumentStore
 {
     // @todo Or maybe these should be functions?
-    private readonly \PDOStatement $loadStatement;
-    private readonly \PDOStatement $loadStatementSingle;
-    private readonly \PDOStatement $deleteStatement;
-    private readonly \PDOStatement $purgeDeletedStatement;
-    private readonly \PDOStatement $purgeOldRevisionsStatement;
+    private readonly Statement $loadStatement;
+    private readonly Statement $loadStatementSingle;
+    private readonly Statement $deleteStatement;
+    private readonly Statement $purgeDeletedStatement;
+    private readonly Statement $purgeOldRevisionsStatement;
 
     public function __construct(
         private readonly Connection $connection,
