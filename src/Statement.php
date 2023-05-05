@@ -4,29 +4,61 @@ declare(strict_types=1);
 
 namespace Crell\PGTools;
 
-use Exception;
 use Traversable;
 
 class Statement implements \IteratorAggregate
 {
     private \PDOStatement $pdoStatement;
 
-    public function __construct(
-        private readonly Connection $connection,
+    private readonly Connection $connection;
+
+    private readonly ?string $into;
+
+    private function __construct() {}
+
+    public static function forQuery(
+        Connection $connection,
         \PDO $pdo,
         string $query,
-        private readonly ?string $into = null,
-    ) {
-        $this->pdoStatement = $pdo->prepare($query);
-        if ($this->into) {
-            $this->pdoStatement->setFetchMode(\PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE, $this->into);
+        ?string $into = null
+    ): static {
+        $new = new self();
+        $new->connection = $connection;
+        $new->into = $into;
+        $new->pdoStatement = $pdo->prepare($query);
+        if ($new->into) {
+            $new->pdoStatement->setFetchMode(\PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE, $into);
         } else {
-            $this->pdoStatement->setFetchMode(\PDO::FETCH_ASSOC);
+            $new->pdoStatement->setFetchMode(\PDO::FETCH_ASSOC);
         }
+        return $new;
+    }
+
+    public static function forStatement(
+        Connection $connection,
+        \PDOStatement $statement,
+        ?string $into = null
+    ): static {
+        $new = new self();
+        $new->connection = $connection;
+        $new->into = $into;
+        $new->pdoStatement = $statement;
+        if ($new->into) {
+            $new->pdoStatement->setFetchMode(\PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE, $into);
+        } else {
+            $new->pdoStatement->setFetchMode(\PDO::FETCH_ASSOC);
+        }
+        return $new;
     }
 
     public function execute(array $args): static
     {
+        foreach ($args as $key => $arg) {
+            if ($arg instanceof \DateTimeInterface) {
+                $args[$key] = $this->connection->dtiToSql($arg);
+            }
+        }
+
         $this->pdoStatement->execute($args);
         return $this;
     }

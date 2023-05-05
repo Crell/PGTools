@@ -15,6 +15,8 @@ use Crell\Serde\SerdeCommon;
 
 class Connection
 {
+    public const PgDateTimeString = 'Y-m-d H:i:s.u P';
+
     public function __construct(
         readonly private \PDO $pdo,
         readonly private Serde $serde = new SerdeCommon(),
@@ -64,18 +66,13 @@ class Connection
 
     public function prepare(string $sql, ?string $into = null): Statement
     {
-        return new Statement($this, $this->pdo, $sql, $into);
+        return Statement::forQuery($this, $this->pdo, $sql, $into);
     }
 
-    public function literalQuery(string $sql): \PDOStatement
+    public function literalQuery(string $sql, ?string $into = null): Statement
     {
-        try {
-            $result = $this->pdo->query($sql);
-            $result->setFetchMode(\PDO::FETCH_ASSOC);
-            return $result;
-        } catch (\PDOException $e) {
-            print $sql . PHP_EOL;
-        }
+        $result = $this->pdo->query($sql);
+        return Statement::forStatement($this, $result, $into);
     }
 
     /**
@@ -149,9 +146,9 @@ class Connection
         return $this->preparedQuery($query, $values);
     }
 
-    public function dtiToSql(\DateTimeImmutable $date): string
+    public function dtiToSql(\DateTimeInterface $date): string
     {
-        return $date->format('Y-m-d H:i:s.u P');
+        return $date->format(self::PgDateTimeString);
     }
 
     public function toSqlLiteral(mixed $value): string
