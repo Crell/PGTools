@@ -21,6 +21,7 @@ class Connection
         readonly private ClassAnalyzer $analyzer = new MemoryCacheAnalyzer(new Analyzer()),
     ) {
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $this->pdo->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
     }
 
     public function schema(): Schema
@@ -58,14 +59,12 @@ class Connection
     {
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($args);
-        $stmt->setFetchMode(\PDO::FETCH_ASSOC);
         return $stmt;
     }
 
     public function prepare(string $sql): \PDOStatement
     {
         $stmt = $this->pdo->prepare($sql);
-        $stmt->setFetchMode(\PDO::FETCH_ASSOC);
         return $stmt;
     }
 
