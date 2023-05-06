@@ -160,6 +160,11 @@ class Connection
         };
     }
 
+    public function quote(string $string, int $type = \PDO::PARAM_STR): string
+    {
+        return $this->pdo->quote($string, $type);
+    }
+
     /**
      * Shamelessly borrowed from https://stackoverflow.com/questions/3068683/convert-postgresql-array-to-php-array
      *
