@@ -6,13 +6,12 @@ namespace Crell\PGTools;
 
 use Crell\PGTools\Attributes\DeserializesToObject;
 use Crell\PGTools\Attributes\Field;
-use Crell\PGTools\Attributes\JsonB;
 use Crell\PGTools\Attributes\Result;
 use Crell\PGTools\Attributes\SelfDecodingColumn;
 use Traversable;
 use function Crell\fp\amap;
-use function Crell\fp\pipe;
 use function Crell\fp\implode;
+use function Crell\fp\pipe;
 
 class Statement implements \IteratorAggregate
 {

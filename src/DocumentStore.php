@@ -8,9 +8,7 @@ use Crell\PGTools\DocumentStore\Document;
 use Crell\Serde\Serde;
 use Crell\Serde\SerdeCommon;
 use function Crell\fp\amap;
-use function Crell\fp\indexBy;
 use function Crell\fp\pipe;
-use function Crell\fp\prop;
 
 /**
  * @todo How to support multiple named document stores, when tables are 1:1 with classes right now?

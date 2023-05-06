@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Crell\PGTools\DocumentStore;
 
 use Crell\PGTools\RawFunction;
-use Crell\PGTools\StoredFunction;
 use Crell\PGTools\RawTrigger;
+use Crell\PGTools\StoredFunction;
 
 class UpdateModifiedDate implements RawTrigger
 {

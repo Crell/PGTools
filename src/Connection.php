@@ -7,9 +7,6 @@ namespace Crell\PGTools;
 use Crell\AttributeUtils\Analyzer;
 use Crell\AttributeUtils\ClassAnalyzer;
 use Crell\AttributeUtils\MemoryCacheAnalyzer;
-use Crell\PGTools\Attributes\Field;
-use Crell\PGTools\Attributes\SequenceField;
-use Crell\PGTools\Attributes\Table;
 use Crell\Serde\Serde;
 use Crell\Serde\SerdeCommon;
 

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Crell\PGTools\Attributes;
 
 use Attribute;
-use Crell\Serde\TypeField;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class SequenceField implements ColumnType, SelfDecodingColumn

@@ -6,7 +6,6 @@ namespace Crell\PGTools\Attributes;
 
 use Attribute;
 use Crell\AttributeUtils\FromReflectionClass;
-use Crell\AttributeUtils\HasSubAttributes;
 use Crell\AttributeUtils\ParseProperties;
 
 #[Attribute(Attribute::TARGET_CLASS)]

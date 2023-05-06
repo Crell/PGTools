@@ -4,11 +4,7 @@ declare(strict_types=1);
 
 namespace Crell\PGTools;
 
-use Crell\PGTools\Procedures\FindPeople;
-use Crell\PGTools\Procedures\HasPerson;
-use Crell\PGTools\Procedures\HasPersonRaw;
 use Crell\PGTools\Tables\ArrayExample;
-use Crell\PGTools\Tables\Data;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 

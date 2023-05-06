@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Crell\PGTools\Attributes;
 
 use Attribute;
-use Crell\AttributeUtils\HasSubAttributes;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class JsonB implements ColumnType, DeserializesToObject
