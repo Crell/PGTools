@@ -248,7 +248,7 @@ class DocumentStoreTest extends TestCase
         self::assertCount(4, $records);
         foreach ($records as $rec) {
             self::assertInstanceOf(Document::class, $rec);
-            self::assertInstanceOf(Character::class, $rec->object);
+            self::assertInstanceOf(Character::class, $rec->document);
         }
     }
 }

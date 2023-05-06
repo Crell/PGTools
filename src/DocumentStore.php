@@ -8,7 +8,9 @@ use Crell\PGTools\DocumentStore\Document;
 use Crell\Serde\Serde;
 use Crell\Serde\SerdeCommon;
 use function Crell\fp\amap;
+use function Crell\fp\indexBy;
 use function Crell\fp\pipe;
+use function Crell\fp\prop;
 
 /**
  * @todo How to support multiple named document stores, when tables are 1:1 with classes right now?
@@ -37,8 +39,7 @@ class DocumentStore
                     FROM document
                     WHERE uuid=:uuid
                     ORDER BY created
-                    LIMIT :limit OFFSET :offset'
-        );
+                    LIMIT :limit OFFSET :offset', into: Document::class);
         $this->deleteStatement ??= $this->connection->prepare(
             "UPDATE document SET deleted=true WHERE uuid=:uuid");
         $this->purgeDeletedStatement ??= $this->connection->prepare(
@@ -123,21 +124,9 @@ class DocumentStore
             ':offset' => $offset,
         ]);
 
-        $populator = fn(object $object) => $this->object = $object;
-
         $docs = [];
         foreach ($this->loadRevisionsStatement as $record) {
-            // @todo This is quite gross. Serde cannot deserialize from an
-            // object that has already been deserialized. That means we have
-            // to deserialize them separately, and then hack into the Document
-            // to write to a separate property from where the JSON was, because
-            // we cannot type it as "object", since Serde doesn't know what to
-            // do with that and the value is a JSON string in the database.
-            // So we end up with double data.  It would be lovely to do better.
-            $rec = $this->serde->deserialize($record, from: 'array', to: Document::class);
-            $object = $this->serde->deserialize($rec->document, from: 'json', to: $rec->class);
-            $populator->call($rec, $object);
-            $docs[$rec->revision] = $rec;
+            $docs[$record->revision] = $record;
         }
 
         return $docs;

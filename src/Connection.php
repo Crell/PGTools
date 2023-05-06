@@ -19,7 +19,7 @@ class Connection
 
     public function __construct(
         readonly private \PDO $pdo,
-        readonly private Serde $serde = new SerdeCommon(),
+        readonly public Serde $serde = new SerdeCommon(),
         readonly public ClassAnalyzer $analyzer = new MemoryCacheAnalyzer(new Analyzer()),
     ) {
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);

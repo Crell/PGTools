@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Crell\PGTools;
 
+use Crell\PGTools\Attributes\DeserializesToObject;
 use Crell\PGTools\Attributes\Field;
+use Crell\PGTools\Attributes\JsonB;
 use Crell\PGTools\Attributes\Result;
 use Crell\PGTools\Attributes\SelfDecodingColumn;
 use Traversable;
@@ -130,7 +132,10 @@ class Statement implements \IteratorAggregate
         foreach ($def->fields as $field) {
             $val = $record[$field->column] ?? throw ResultTypeColumnMissing::create($field, $class);
             $values[$field->name] = match (true) {
-                $field->columnType instanceof SelfDecodingColumn => $field->columnType->decode($val),
+                $field->columnType instanceof SelfDecodingColumn
+                    => $field->columnType->decode($val),
+                $field->columnType instanceof DeserializesToObject
+                    => $this->connection->serde->deserialize($val, from: 'json', to: $field->columnType->className($values)),
                 default => $val,
             };
         }
