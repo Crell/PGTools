@@ -89,7 +89,6 @@ class Field implements FromReflectionProperty, HasSubAttributes, Excludable
         $this->isId = isset($id);
         $this->isGeneratedId = $id?->generate ?? false;
 
-        // This sorta hard-codes integer IDs.  UUID will require changes here.
         if ($this->isGeneratedId) {
             $this->columnType = new Serial();
         }
