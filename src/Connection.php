@@ -71,7 +71,7 @@ class Connection
         $placeholders = [];
         $values = [];
         foreach ($vals as $val) {
-            $placeholder = ':placeholder_1' . $counter++;
+            $placeholder = ':placeholder_' . $counter++;
             $placeholders[] = $placeholder;
             $values[$placeholder] = $val;
         }
@@ -99,13 +99,7 @@ class Connection
 
     public function callFunc(string $function, int|string|float|bool ...$args): Statement
     {
-        $placeholders = [];
-        $values = [];
-        foreach (array_values($args) as $idx => $value) {
-            $key = ':placeholder_' . $idx;
-            $placeholders[] = $key;
-            $values[$key] = $value;
-        }
+        [$placeholders, $values] = $this->toParameterList($args);
 
         $query = "SELECT * FROM $function(" . implode(', ', $placeholders) . ')';
         return $this->preparedQuery($query, $values);
@@ -113,13 +107,7 @@ class Connection
 
     public function callProc(string $procedure, int|string|float|bool ...$args): Statement
     {
-        $placeholders = [];
-        $values = [];
-        foreach (array_values($args) as $idx => $value) {
-            $key = ':placeholder_' . $idx;
-            $placeholders[] = $key;
-            $values[$key] = $value;
-        }
+        [$placeholders, $values] = $this->toParameterList($args);
 
         $query = "CALL $procedure(" . implode(', ', $placeholders) . ')';
         return $this->preparedQuery($query, $values);
