@@ -114,4 +114,27 @@ class StatementTest extends TestCase
         self::assertEquals(3.14, $stmt->fetchColumn(1));
         self::assertEquals('hi again', $stmt->fetchColumn(2));
     }
+
+    /**
+     * @todo Arrays coming back as strings with oddball quoting is not ideal.
+     *   Fixing that, however, requires knowledge of the field type, which
+     *   PDO doesn't really give us.  That may only work when fetching into
+     *   a class so that we have the type data there to guide us.
+     */
+    #[Test]
+    public function array_quoting(): void
+    {
+        $this->connection->literalQuery("DROP TABLE IF EXISTS arrayexample");
+        $this->connection->schema()->ensureTable(ArrayExample::class);
+
+        $this->connection->preparedQuery('insert into arrayexample (series, characters) VALUES (:series, :characters)', [
+            ':series' => 'VOY',
+            ':characters' => ['Janeway', 'Tuvok', "B'Elana"],
+        ]);
+
+        $record = $this->connection->literalQuery('SELECT * FROM arrayexample')->fetch();
+
+        self::assertEquals('VOY', $record['series']);
+        self::assertEquals("{'Janeway','Tuvok','B''Elana'}", $record['characters']);
+    }
 }
