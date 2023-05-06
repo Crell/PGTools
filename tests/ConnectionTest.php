@@ -27,13 +27,13 @@ class ConnectionTest extends TestCase
     {
         $this->connection->preparedQuery('insert into arrayexample (series, characters) VALUES (:series, :characters)', [
             ':series' => 'TOS',
-            ':characters' => '{"Kirk", "Spock", "McCoy"}',
+            ':characters' => ['Kirk', 'Spock', 'McCoy'],
         ]);
 
         $this->connection->inTransaction(function (Connection $conn) {
             $this->connection->preparedQuery('insert into arrayexample (series, characters) VALUES (:series, :characters)', [
                 ':series' => 'TNG',
-                ':characters' => '{"Picard", "Riker", "Data"}',
+                ':characters' => ['Picard', 'Riker', 'Data'],
             ]);
         });
 
@@ -46,13 +46,13 @@ class ConnectionTest extends TestCase
     {
         $this->connection->preparedQuery('insert into arrayexample (series, characters) VALUES (:series, :characters)', [
             ':series' => 'TOS',
-            ':characters' => '{"Kirk", "Spock", "McCoy"}',
+            ':characters' => ['Kirk', 'Spock', 'McCoy'],
         ]);
 
         $this->connection->inTransaction(function (Connection $conn) {
             $this->connection->preparedQuery('insert into arrayexample (series, characters) VALUES (:series, :characters)', [
                 ':series' => 'TNG',
-                ':characters' => '{"Picard", "Riker", "Data"}',
+                ':characters' => ['Picard', 'Riker', 'Data'],
             ]);
             throw new \Exception('Oopsies');
         });

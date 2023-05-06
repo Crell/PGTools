@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Crell\PGTools;
 
 use Traversable;
+use function Crell\fp\amap;
+use function Crell\fp\pipe;
+use function Crell\fp\implode;
 
 class Statement implements \IteratorAggregate
 {
@@ -44,11 +47,7 @@ class Statement implements \IteratorAggregate
 
     public function execute(array $args): static
     {
-        foreach ($args as $key => $arg) {
-            if ($arg instanceof \DateTimeInterface) {
-                $args[$key] = $this->connection->dtiToSql($arg);
-            }
-        }
+        $args = array_map($this->preprocessQueryArg(...), $args);
 
         $this->pdoStatement->execute($args);
         return $this;
@@ -75,4 +74,20 @@ class Statement implements \IteratorAggregate
         yield from $this->pdoStatement;
     }
 
+    private function preprocessQueryArg(mixed $arg): mixed
+    {
+        return match (true) {
+            $arg instanceof \DateTimeInterface => $this->connection->dtiToSql($arg),
+            is_array($arg) => $this->toPgArray($arg),
+            default => $arg,
+        };
+    }
+
+    private function toPgArray(array $array): string
+    {
+        return '{' . pipe($array,
+            amap(fn($arg) => is_string($arg) ? $this->connection->quote($arg) : $arg),
+            implode(','),
+        ) . '}';
+    }
 }
