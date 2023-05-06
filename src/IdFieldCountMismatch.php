@@ -10,9 +10,9 @@ class IdFieldCountMismatch extends \InvalidArgumentException
     public readonly int $expectedNumber;
     public readonly int $providedNumber;
 
-    public static function create(string $table, int $expectedNumber, int $providedNumber): static
+    public static function create(string $table, int $expectedNumber, int $providedNumber): self
     {
-        $new = new static();
+        $new = new self();
         $new->table = $table;
         $new->expectedNumber = $expectedNumber;
         $new->providedNumber = $providedNumber;

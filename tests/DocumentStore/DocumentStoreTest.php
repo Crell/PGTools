@@ -90,7 +90,7 @@ class DocumentStoreTest extends TestCase
 
         $store = $this->connection->documentStore('main');
 
-        /** @var Character $written */
+        /** @var Character $picard */
         $picard = $store->write($picard);
         $riker = $store->write($riker);
 

@@ -36,6 +36,9 @@ class PartitionByRange implements HasSubAttributes, PartitionType
         ];
     }
 
+    /**
+     * @param PartitionRange[] $partitions
+     */
     public function fromPartition(array $partitions = []): void
     {
         $this->partitions = $partitions;

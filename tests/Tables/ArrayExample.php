@@ -14,6 +14,9 @@ class ArrayExample
     #[Field]
     public string $series;
 
+    /**
+     * @var string[]
+     */
     #[SequenceField('varchar')]
     public array $characters;
 }

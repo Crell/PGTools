@@ -12,13 +12,11 @@ class ResultTypeColumnMissing extends \RuntimeException
     public readonly string $resultClass;
 
     /**
-     * @param Field $field
      * @param class-string $resultClass
-     * @return static
      */
-    public static function create(Field $field, string $resultClass): static
+    public static function create(Field $field, string $resultClass): self
     {
-        $new = new static();
+        $new = new self();
         $new->field = $field;
         $new->resultClass = $resultClass;
 

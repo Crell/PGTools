@@ -42,9 +42,9 @@ class SequenceField implements ColumnType, SelfDecodingColumn
      * @param string $s
      * @param int $start
      * @param $end
-     * @return ?array
+     * @return ?array<string|int|float|bool>
      */
-    private function decodePgArray(string $s, int $start = 0, &$end = null): ?array
+    private function decodePgArray(string $s, int $start = 0, ?int &$end = null): ?array
     {
         if (empty($s) || $s[0] !== '{') {
             return null;

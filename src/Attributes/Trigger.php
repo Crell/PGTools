@@ -10,6 +10,9 @@ use Crell\AttributeUtils\Multivalue;
 #[Attribute(Attribute::TARGET_CLASS|Attribute::IS_REPEATABLE)]
 class Trigger implements Multivalue
 {
+    /**
+     * @var string[]
+     */
     public readonly array $triggers;
 
     public function __construct(

@@ -26,21 +26,21 @@ class DocumentStore
         private readonly Connection $connection,
         private readonly Serde $serde = new SerdeCommon(),
     ) {
-        $this->loadStatement ??= $this->connection->prepare(
+        $this->loadStatement = $this->connection->prepare(
             "SELECT document, class
                     FROM document
                     WHERE deleted=false
                       AND active=true
                       AND uuid = ANY(:uuids::uuid[])");
-        $this->loadRevisionsStatement ??= $this->connection->prepare(
+        $this->loadRevisionsStatement = $this->connection->prepare(
             'SELECT *
                     FROM document
                     WHERE uuid=:uuid
                     ORDER BY created
                     LIMIT :limit OFFSET :offset', into: Document::class);
-        $this->deleteStatement ??= $this->connection->prepare(
+        $this->deleteStatement = $this->connection->prepare(
             "UPDATE document SET deleted=true WHERE uuid=:uuid");
-        $this->purgeDeletedStatement ??= $this->connection->prepare(
+        $this->purgeDeletedStatement = $this->connection->prepare(
             "WITH uuids AS (
                     SELECT uuid
                         FROM document
@@ -52,7 +52,7 @@ class DocumentStore
                 DELETE FROM document USING uuids WHERE document.uuid=uuids.uuid
             ");
 
-        $this->purgeOldRevisionsStatement ??= $this->connection->prepare(
+        $this->purgeOldRevisionsStatement = $this->connection->prepare(
             "DELETE FROM document WHERE active=false AND created < :threshold::timestamptz"
         );
     }
@@ -77,6 +77,10 @@ class DocumentStore
         return $this->load($document->uuid);
     }
 
+    /**
+     * @param string[] $ids
+     * @return array<int, object>
+     */
     public function loadMultiple(array $ids): array
     {
         $this->loadStatement->execute([':uuids' => $ids]);
@@ -92,7 +96,7 @@ class DocumentStore
     }
 
     /**
-     * @param array $ids
+     * @param array<string> $ids
      * @return Document[]
      */
     public function loadRecords(array $ids): array
@@ -114,6 +118,9 @@ class DocumentStore
         return $docs;
     }
 
+    /**
+     * @return array<string, Document>
+     */
     public function loadRevisions(string $uuid, int $limit = 10, int $offset = 0): array
     {
         $this->loadRevisionsStatement->execute([

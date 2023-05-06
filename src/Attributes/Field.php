@@ -10,7 +10,6 @@ use Crell\AttributeUtils\FromReflectionProperty;
 use Crell\AttributeUtils\HasSubAttributes;
 use Crell\PGTools\DefaultValue;
 use Crell\PGTools\IntersectionTypesNotSupported;
-use Crell\PGTools\ResourcePropertiesNotAllowed;
 use Crell\PGTools\UnionTypesNotSupported;
 use function Crell\fp\indexBy;
 use function Crell\fp\method;
@@ -69,7 +68,6 @@ class Field implements FromReflectionProperty, HasSubAttributes, Excludable
     {
         $this->name = $subject->name;
         $this->phpType ??= $this->getNativeType($subject);
-        $this->doctrineType ??= $this->getDoctrineType($this->phpType);
         $this->column ??= $subject->name;
         $this->default ??= $this->getDefaultValueFromConstructor($subject);
         // If there's no type defined, that means it's mixed, which includes null.
@@ -114,23 +112,6 @@ class Field implements FromReflectionProperty, HasSubAttributes, Excludable
         };
     }
 
-    /**
-     * Maps to the Doctrine Schema addField(options) array. Check the docs there.
-     */
-    public function options(): array
-    {
-        $ret = [];
-        foreach (['default', 'length', 'unsigned'] as $key) {
-            if ($this->$key) {
-                $ret[$key] = $this->$key;
-            }
-        }
-        if ($this->isGeneratedId) {
-            $ret['autoincrement'] = true;
-        }
-        return $ret;
-    }
-
     protected function getNativeType(\ReflectionProperty $property): string
     {
         $rType = $property->getType();
@@ -138,6 +119,7 @@ class Field implements FromReflectionProperty, HasSubAttributes, Excludable
             $rType instanceof \ReflectionUnionType => throw UnionTypesNotSupported::create($property),
             $rType instanceof \ReflectionIntersectionType => throw IntersectionTypesNotSupported::create($property),
             $rType instanceof \ReflectionNamedType => $rType->getName(),
+            true => '', // This is impossible. It's just for PHPStan.
         };
     }
 
@@ -153,21 +135,5 @@ class Field implements FromReflectionProperty, HasSubAttributes, Excludable
         return $param?->isDefaultValueAvailable()
             ? DefaultValue::Value($param->getDefaultValue())
             : DefaultValue::NoValue();
-    }
-
-    protected function getDoctrineType(string $phpType): string
-    {
-        return match ($phpType) {
-            'int' => 'integer',
-            'string' => 'string',
-            'float' => 'float',
-            // Only ever allow storing datetime with TZ data.
-            \DateTime::class => 'datetimetz',
-            \DateTimeImmutable::class => 'datetimetz_immutable',
-            'array' => 'json',
-            // @todo Need a test case for this.
-            'resource' => throw ResourcePropertiesNotAllowed::create('Fix this string'),
-            default => 'json',
-        };
     }
 }

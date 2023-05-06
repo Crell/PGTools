@@ -33,7 +33,7 @@ class Statement implements \IteratorAggregate
         \PDO $pdo,
         string $query,
         ?string $into = null
-    ): static {
+    ): self {
         return self::forStatement($connection, $pdo->prepare($query), $into);
     }
 
@@ -41,7 +41,7 @@ class Statement implements \IteratorAggregate
         Connection $connection,
         \PDOStatement $statement,
         ?string $into = null
-    ): static {
+    ): self {
         $new = new self();
         $new->connection = $connection;
         $new->into = $into;
@@ -50,6 +50,11 @@ class Statement implements \IteratorAggregate
         return $new;
     }
 
+    /**
+     * @param array<string|int, mixed> $args
+     *   A PDO-style arguments array, indexed by placeholder name. Placeholders have a ':' prefix.
+     * @return $this
+     */
     public function execute(array $args): static
     {
         $args = array_map($this->preprocessQueryArg(...), $args);
@@ -58,6 +63,9 @@ class Statement implements \IteratorAggregate
         return $this;
     }
 
+    /**
+     * @return array<int, mixed>|object|false
+     */
     public function fetch(): array|object|false
     {
         $record = $this->pdoStatement->fetch();
@@ -72,11 +80,22 @@ class Statement implements \IteratorAggregate
         return $this->createObject($this->into, $record, $resultDef);
     }
 
+    /**
+     *
+     *
+     * @param int $column
+     * @return int|string|float|array<int|string, mixed>|bool
+     */
     public function fetchColumn(int $column = 0): int|string|float|array|bool
     {
         return $this->pdoStatement->fetchColumn($column);
     }
 
+    /**
+     *
+     *
+     * @return array<array<int|string, mixed>>
+     */
     public function fetchAll(): array
     {
         return iterator_to_array($this);
@@ -100,6 +119,9 @@ class Statement implements \IteratorAggregate
         };
     }
 
+    /**
+     * @param array<int|string, mixed> $array
+     */
     private function toPgArray(array $array): string
     {
         return '{' . pipe($array,

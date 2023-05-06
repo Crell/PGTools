@@ -35,6 +35,9 @@ class PartitionByList implements HasSubAttributes, PartitionType
         ];
     }
 
+    /**
+     * @param PartitionList[] $partitions
+     */
     public function fromPartitionList(array $partitions = []): void
     {
         $this->partitions = $partitions;

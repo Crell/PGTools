@@ -59,7 +59,7 @@ class Connection
      * Call like so:
      * [$placeholders, $values] = $conn->toParameterList($list_of_vals);
      *
-     * @param array $vals
+     * @param array<string|int|float|bool> $vals
      * @return array{array<string>, array<string, mixed>}
      *   A tuple, consisting of an array of placeholders and an array of
      *   values mapped to placeholders.
@@ -97,7 +97,7 @@ class Connection
         }
     }
 
-    public function callFunc(string $function, ...$args): Statement
+    public function callFunc(string $function, int|string|float|bool ...$args): Statement
     {
         $placeholders = [];
         $values = [];
@@ -111,7 +111,7 @@ class Connection
         return $this->preparedQuery($query, $values);
     }
 
-    public function callProc(string $procedure, ...$args): Statement
+    public function callProc(string $procedure, int|string|float|bool ...$args): Statement
     {
         $placeholders = [];
         $values = [];
@@ -136,6 +136,7 @@ class Connection
             'int', 'float' => $value,
             'bool' => $value ? 'true' : 'false',
             'string' => "'$value'",
+            default => $value,
         };
     }
 

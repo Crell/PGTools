@@ -7,11 +7,20 @@ namespace Crell\PGTools;
 class MultiKeyIdHasNumericKeys extends \InvalidArgumentException
 {
     public readonly string $table;
+
+    /**
+     * @var array<string> $ids
+     */
     public readonly array $ids;
 
-    public static function create(string $table, array $ids): static
+    /**
+     * @param array<string> $ids
+     *
+     * @todo Not sure if the type is right here, honestly...
+     */
+    public static function create(string $table, array $ids): self
     {
-        $new = new static();
+        $new = new self();
         $new->table = $table;
         $new->ids = $ids;
 
