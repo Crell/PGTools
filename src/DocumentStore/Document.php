@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Crell\PGTools\DocumentStore;
 
 use Crell\PGTools\Attributes\Boolean;
-use Crell\PGTools\Attributes\ClassSource;
 use Crell\PGTools\Attributes\DefaultPartition;
 use Crell\PGTools\Attributes\Field;
 use Crell\PGTools\Attributes\Id;
@@ -46,6 +45,6 @@ class Document
     #[Varchar]
     public readonly string $class;
 
-    #[JsonB, ClassSource('class')]
+    #[JsonB(classColumn: 'class')]
     public readonly object $document;
 }

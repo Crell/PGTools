@@ -8,33 +8,19 @@ use Attribute;
 use Crell\AttributeUtils\HasSubAttributes;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class JsonB implements ColumnType, DeserializesToObject, HasSubAttributes
+class JsonB implements ColumnType, DeserializesToObject
 {
-    /**
-     * @var class-string
-     */
-    private readonly ?string $classColumn;
+    public function __construct(
+        public readonly ?string $classColumn = null,
+    ) {}
 
     public function pgType(): string
     {
         return 'jsonb';
     }
 
-    public function subAttributes(): array
-    {
-        return [
-            ClassSource::class => 'fromClassSource',
-        ];
-    }
-
-    public function fromClassSource(?ClassSource $source): void
-    {
-        $this->classColumn = $source?->column;
-    }
-
     public function className(array $record): string
     {
         return $record[$this->classColumn];
     }
-
 }
