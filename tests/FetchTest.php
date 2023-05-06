@@ -41,13 +41,11 @@ class FetchTest extends TestCase
     }
 
     #[Test]
-    public function fetch_into_object(): void
+    public function fetch_into_object_with_array_fields(): void
     {
-        $result = $this->connection->literalQuery("SELECT * FROM ArrayExample ORDER BY series");
+        $result = $this->connection->literalQuery("SELECT * FROM ArrayExample ORDER BY series", into: ArrayExample::class);
 
-        $it = $this->connection->fetchInto($result, ArrayExample::class);
-
-        $records = iterator_to_array($it);
+        $records = iterator_to_array($result);
 
         self::assertCount(2, $records);
         self::assertInstanceOf(ArrayExample::class, $records[0]);
