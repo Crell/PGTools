@@ -37,9 +37,8 @@ class Schema
         $idFields = array_filter($tableDef->fields, static fn(Field $f): bool => $f->isId);
 
         if ($idFields) {
-            $name = \implode('_', array_map(prop('name'), $idFields));
             $columns = \implode(', ', array_map(prop('column'), $idFields));
-            $columnSql .= sprintf(",\nCONSTRAINT %s PRIMARY KEY(%s)", $name, $columns);
+            $columnSql .= sprintf(",\nPRIMARY KEY(%s)", $columns);
         }
 
         $sql = "CREATE TABLE $tableDef->name ($columnSql)";

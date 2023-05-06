@@ -69,7 +69,7 @@ class Statement implements \IteratorAggregate
         return $this->pdoStatement->fetch();
     }
 
-    public function fetchColumn(int $column = 0): int|string|float|array|false
+    public function fetchColumn(int $column = 0): int|string|float|array|bool
     {
         return $this->pdoStatement->fetchColumn($column);
     }

@@ -42,7 +42,7 @@ class Connection
      *
      * @param class-string $class
      */
-    public function fetchInto(\PDOStatement $result, string $class): \Generator
+    public function fetchInto(Statement $result, string $class): \Generator
     {
         $fields = $this->analyzer->analyze($class, Table::class)->fields;
         $sequenceColumns = array_filter($fields, static fn(Field $f): bool => $f->columnType instanceof SequenceField);
