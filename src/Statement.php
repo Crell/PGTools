@@ -102,7 +102,7 @@ class Statement implements \IteratorAggregate
     private function toPgArray(array $array): string
     {
         return '{' . pipe($array,
-            amap(fn($arg) => is_string($arg) ? $this->connection->quote($arg) : $arg),
+            amap(fn($arg) => is_string($arg) ? "\"$arg\"" : $arg),
             implode(','),
         ) . '}';
     }

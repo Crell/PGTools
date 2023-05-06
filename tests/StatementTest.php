@@ -135,6 +135,6 @@ class StatementTest extends TestCase
         $record = $this->connection->literalQuery('SELECT * FROM arrayexample')->fetch();
 
         self::assertEquals('VOY', $record['series']);
-        self::assertEquals("{'Janeway','Tuvok','B''Elana'}", $record['characters']);
+        self::assertEquals("{Janeway,Tuvok,B'Elana}", $record['characters']);
     }
 }

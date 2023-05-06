@@ -17,7 +17,7 @@ class DocumentStore
 {
     // @todo Or maybe these should be functions?
     private readonly Statement $loadStatement;
-    private readonly Statement $loadStatementSingle;
+    private readonly Statement $loadRevisionsStatement;
     private readonly Statement $deleteStatement;
     private readonly Statement $purgeDeletedStatement;
     private readonly Statement $purgeOldRevisionsStatement;
@@ -26,21 +26,19 @@ class DocumentStore
         private readonly Connection $connection,
         private readonly Serde $serde = new SerdeCommon(),
     ) {
-        // @todo This syntax isn't working for some reason. I think
-        // PDO is garbling the query due to all the colons.
-        // cf: https://stackoverflow.com/questions/10720420/node-postgres-how-to-execute-where-col-in-dynamic-value-list-query
         $this->loadStatement ??= $this->connection->prepare(
-            "SELECT document, class 
-                    FROM document 
-                    WHERE deleted=false 
-                      AND active=true
-                      AND uuid = ANY(:uuids::uuid[])");
-        $this->loadStatementSingle ??= $this->connection->prepare(
             "SELECT document, class
                     FROM document
                     WHERE deleted=false
                       AND active=true
-                      AND uuid=:uuid");
+                      AND uuid = ANY(:uuids::uuid[])");
+        $this->loadRevisionsStatement ??= $this->connection->prepare(
+            'SELECT *
+                    FROM document
+                    WHERE uuid=:uuid
+                    ORDER BY created
+                    LIMIT :limit OFFSET :offset'
+        );
         $this->deleteStatement ??= $this->connection->prepare(
             "UPDATE document SET deleted=true WHERE uuid=:uuid");
         $this->purgeDeletedStatement ??= $this->connection->prepare(
@@ -82,17 +80,9 @@ class DocumentStore
 
     public function loadMultiple(array $ids): array
     {
-        [$placeholders, $values] = $this->connection->toParameterList($ids);
+        $this->loadStatement->execute([':uuids' => $ids]);
 
-        $stmt = $this->connection->prepare('SELECT document, class
-                    FROM document
-                    WHERE deleted=false
-                      AND active=true
-                      AND uuid IN (' . implode(',', $placeholders) . ')');
-
-        $stmt->execute($values);
-
-        return pipe($stmt,
+        return pipe($this->loadStatement,
             amap(fn(array $record): object => $this->serde->deserialize($record['document'], from: 'json', to: $record['class'])),
         );
     }
@@ -100,16 +90,6 @@ class DocumentStore
     public function load(string $uuid): ?object
     {
         return $this->loadMultiple([$uuid])[0] ?? null;
-        /*
-        $this->loadStatementSingle->execute([':uuid' => $uuid]);
-
-        $record = $this->loadStatementSingle->fetch();
-        if (!$record) {
-            return null;
-        }
-
-        return $this->serde->deserialize($record['document'], from: 'json', to: $record['class']);
-        */
     }
 
     /**
@@ -137,13 +117,7 @@ class DocumentStore
 
     public function loadRevisions(string $uuid, int $limit = 10, int $offset = 0): array
     {
-        $stmt = $this->connection->prepare('SELECT * 
-                    FROM document 
-                    WHERE uuid=:uuid
-                    ORDER BY created
-                    LIMIT :limit OFFSET :offset');
-
-        $stmt->execute([
+        $this->loadRevisionsStatement->execute([
             ':uuid' => $uuid,
             ':limit' => $limit,
             ':offset' => $offset,
@@ -152,7 +126,7 @@ class DocumentStore
         $populator = fn(object $object) => $this->object = $object;
 
         $docs = [];
-        foreach ($stmt as $record) {
+        foreach ($this->loadRevisionsStatement as $record) {
             // @todo This is quite gross. Serde cannot deserialize from an
             // object that has already been deserialized. That means we have
             // to deserialize them separately, and then hack into the Document
@@ -183,5 +157,4 @@ class DocumentStore
     {
         $this->purgeOldRevisionsStatement->execute([':threshold' => $this->connection->dtiToSql($threshold)]);
     }
-
 }
