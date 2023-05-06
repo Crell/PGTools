@@ -22,16 +22,7 @@ class Statement implements \IteratorAggregate
         string $query,
         ?string $into = null
     ): static {
-        $new = new self();
-        $new->connection = $connection;
-        $new->into = $into;
-        $new->pdoStatement = $pdo->prepare($query);
-        if ($new->into) {
-            $new->pdoStatement->setFetchMode(\PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE, $into);
-        } else {
-            $new->pdoStatement->setFetchMode(\PDO::FETCH_ASSOC);
-        }
-        return $new;
+        return self::forStatement($connection, $pdo->prepare($query), $into);
     }
 
     public static function forStatement(
